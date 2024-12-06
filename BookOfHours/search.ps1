@@ -17,34 +17,27 @@ function Get-Queries {
 
     $nameSelector = "(.Label // .label // .id)"
 
+    $NameQuery = ".[][] | select($baseSelector) | $nameSelector | select(.)"
+
+    $ValueQuery = ".[][] | select($baseSelector) | (.desc // .Desc) | select(.)"
+
+    $ObjectQuery = ".[][] | select($baseSelector)"
+
     switch ($Mode.ToLower()) {
         "skills" {
             $FilePath = ".\elements\skills.json"
-            # For skills, we know name should come from (.Label // .label // .id), desc from (.Desc // .desc)
-            $NameQuery = ".[][] | select($baseSelector) | $nameSelector"
-            $ValueQuery = ".[][] | select($baseSelector) | (.Desc // .desc)"
-            $ObjectQuery = ".[][] | select($baseSelector)"
         }
         "aspects" {
             $FilePath = ".\elements\_aspects.json"
-            # Aspects also use (.Label // .id), and we ensure null checks and test for $query
-            $NameQuery = ".[][] | select($baseSelector) | $nameSelector | select(.)"
-            $ValueQuery = ".[][] | select($baseSelector) | (.desc // .Desc) | select(.)"
-            $ObjectQuery = ".[][] | select($baseSelector)"
         }
         "contamination aspects" {
             $FilePath = ".\elements\contamination_aspects.json"
-            # For contamination aspects, we know `.label` is used instead of `.Label`, but we included `.label` in the $baseSelector as well
-            $NameQuery = ".[][] | select($baseSelector) | $nameSelector"
-            $ValueQuery = ".[][] | select($baseSelector) | (.desc // .Desc)"
-            $ObjectQuery = ".[][] | select($baseSelector)"
         }
         "tomes" {
             $FilePath = ".\elements\tomes.json"
-            # For contamination aspects, we know `.label` is used instead of `.Label`, but we included `.label` in the $baseSelector as well
-            $NameQuery = ".[][] | select($baseSelector) | $nameSelector"
-            $ValueQuery = ".[][] | select($baseSelector) | (.desc // .Desc)"
-            $ObjectQuery = ".[][] | select($baseSelector)"
+        }
+        "aspected items" {
+            $FilePath = ".\elements\aspecteditems.json"
         }
         default {
             Write-Error "Invalid Mode: $Mode. Supported modes are 'skills', 'aspects', 'contamination aspects'."
@@ -174,18 +167,34 @@ function tomes {
                       -includeObjectQuery $includeObjectQuery
 }
 
+function aspected_items {
+    param (
+        [string]$query,
+        [bool]$includeObjectQuery = $false
+    )
+
+    $queries = Get-Queries -Mode "aspected items" -Query $query
+    if ($null -eq $queries) { return }
+
+    Fetch-And-Display -FilePath $queries.FilePath `
+                      -NameQuery $queries.NameQuery `
+                      -ValueQuery $queries.ValueQuery `
+                      -ObjectQuery $queries.ObjectQuery `
+                      -includeObjectQuery $includeObjectQuery
+}
+
 
 # Main REPL Loop with Mode Selection and CTRL+C Handling
 function Select-Mode {
     while ($true) {
-        $global:Mode = Read-Host "Enter mode (skills, aspects, contamination aspects, tomes) or 'exit' to quit"
+        $global:Mode = Read-Host "Enter mode (skills, aspects, contamination aspects, tomes, aspected items) or 'exit' to quit"
 
         if ($global:Mode.ToLower() -eq 'exit') {
             Write-Host "Exiting..."
             return $false
         }
 
-        if ($global:Mode.ToLower() -in @("skills", "aspects", "contamination aspects", "tomes")) {
+        if ($global:Mode.ToLower() -in @("skills", "aspects", "contamination aspects", "tomes", "aspected items")) {
             Write-Host "Mode set to '$global:Mode'. Type your search query."
             return $true
         }
@@ -246,6 +255,9 @@ while ($true) {
         }
         "tomes" {
             tomes -query $query -includeObjectQuery $includeObjectQuery
+        }
+        "aspected items" {
+            aspected_items -query $query -includeObjectQuery $includeObjectQuery
         }
         default {
             Write-Host "Invalid mode. Please select a valid mode using 'reset'." -ForegroundColor Red
