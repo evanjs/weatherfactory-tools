@@ -1,5 +1,13 @@
 [workspace]
+resolver = "2"
 
 members = [
-    "BookOfHours/boh-cli"
+    "BookOfHours/boh-cli",
+    "workspace-hack"
 ]
+
+[workspace.dependencies]
+workspace-hack = "0.1.0"
+
+[patch.crates-io.workspace-hack]
+path = "workspace-hack"
