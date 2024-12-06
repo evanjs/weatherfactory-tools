@@ -88,9 +88,18 @@ fn main() -> Result<(), ReadlineError> {
     let mut mode = String::new();
     let mut include_object_query = false;
 
-    #[cfg(feature = "with-sqlite-history")]
-    if rl.load_history("history.sqlite").is_err() {
-        println!("No previous history.");
+    cfg_if::cfg_if! {
+        if #[cfg(feature = "with-sqlite-history")] {
+             if rl.load_history("history.sqlite").is_err() {
+                info!("No previous history.");
+            }
+        } else if #[cfg(feature = "with-file-history")] {
+            if rl.load_history("history.txt").is_err() {
+                info!("No previous history.");
+            }
+        } else {
+            error!("History not loaded because neither 'with-sqlite-history' nor 'with-file-history' features are enabled");
+        }
     }
 
     loop {
@@ -153,8 +162,19 @@ fn main() -> Result<(), ReadlineError> {
         }
     }
 
-    // Save the command history
-    rl.save_history("history.txt")?;
+    cfg_if::cfg_if! {
+        if #[cfg(feature = "with-sqlite-history")]{
+            // Save the command history
+            rl.save_history("history.sqlite")?;
+        }
+        else if #[cfg(feature = "with-file-history")] {
+            // Save the command history
+            rl.save_history("history.txt")?;
+        } else {
+            error!("History not saved because neither 'with-sqlite-history' nor 'with-file-history' features are enabled");
+        }
+    }
+
     Ok(())
 }
 
