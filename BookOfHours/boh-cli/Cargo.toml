@@ -1,0 +1,11 @@
+[package]
+name = "boh-cli"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.94"
+rustyline = { version = "15.0.0", features = ["with-file-history", "with-sqlite-history"] }
+serde_json = "1.0.133"
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
