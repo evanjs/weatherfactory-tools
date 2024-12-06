@@ -1,22 +1,59 @@
-mod log;
+mod logging;
 
 use std::fs;
-use tracing::{error, info};
+use std::fs::File;
+use tracing::{debug, error, info, warn};
 
-use std::io::{self, Write};
+use std::io::{self, Read, Write};
 
-use anyhow::Error;
+use rustyline::error::ReadlineError;
+use rustyline::DefaultEditor;
+
+use anyhow::{anyhow, Error};
+use serde::{Serialize, Deserialize};
 use serde_json::Value;
+use tracing_subscriber::util::TryInitError;
 
+#[derive(Debug, Serialize, Deserialize)]
 struct Queries {
-    file_path: String,
+    bhcontent_path: String,
     name_query: String,
     value_query: String,
     object_query: String,
 }
 
+// Function to read configuration
+#[tracing::instrument]
+fn read_config() -> anyhow::Result<String> {
+    let mut file = File::open("config.json")?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+    let config: Value = serde_json::from_str(&contents)?;
+    if let Some(base_path) = config["bhcontent_path"].as_str() {
+        Ok(base_path.to_string())
+    } else {
+        Err(anyhow::Error::msg("Missing 'bhcontent_path' in config.json"))
+    }
+}
+
 // Function to get queries based on mode and query
 fn get_queries(mode: &str, query: &str) -> anyhow::Result<Queries> {
+
+    // Read the base directory from the config
+    let base_dir = match read_config() {
+        Ok(dir) => dir,
+        Err(error) => {
+            let message = "Error encountered when attempting to read config file";
+            error!(
+                ?error,
+                ?mode,
+                ?query,
+                message
+            );
+            return Err(anyhow!(message))
+        }
+    };
+
     let base_selector = r#"((.Label // .label) // .id) | select(. != null) | test("#;
     let name_selector = r#"(.Label // .label // .id)"#;
 
@@ -30,17 +67,18 @@ fn get_queries(mode: &str, query: &str) -> anyhow::Result<Queries> {
     );
     let object_query = format!(".[][] | select({}{})", base_selector, query);
 
-    let file_path = match mode.to_lowercase().as_str() {
-        "skills" => "./elements/skills.json",
-        "aspects" => "./elements/_aspects.json",
-        "contamination aspects" => "./elements/contamination_aspects.json",
-        "tomes" => "./elements/tomes.json",
-        "aspected items" => "./elements/aspecteditems.json",
+    // Construct the file path using the base directory
+    let bhcontent_path = match mode.to_lowercase().as_str() {
+        "skills" => format!("{}/elements/skills.json", base_dir),
+        "aspects" => format!("{}/elements/_aspects.json", base_dir),
+        "contamination aspects" => format!("{}/elements/contamination_aspects.json", base_dir),
+        "tomes" => format!("{}/elements/tomes.json", base_dir),
+        "aspected items" => format!("{}/elements/aspecteditems.json", base_dir),
         _ => return Err(Error::msg(format!("Invalid mode: {}", mode))),
     };
 
     Ok(Queries {
-        file_path: file_path.to_string(),
+        bhcontent_path: bhcontent_path.to_string(),
         name_query,
         value_query,
         object_query,
@@ -48,8 +86,27 @@ fn get_queries(mode: &str, query: &str) -> anyhow::Result<Queries> {
 }
 
 // Function to fetch and display the results
+#[tracing::instrument]
 fn fetch_and_display(queries: &Queries, include_object_query: bool) -> anyhow::Result<()> {
-    let file_content = fs::read_to_string(&queries.file_path)?;
+    debug!(
+        queries_bhcontent_path =? queries.bhcontent_path,
+        "Attempting to read file"
+    );
+
+    let file_content = match fs::read_to_string(&queries.bhcontent_path) {
+        Ok(o) => {
+            o
+        }
+        Err(error) => {
+            let message = "Error encountered when attempting to read file";
+            error!(
+                ?error,
+                queries_bhcontent_path =? queries.bhcontent_path,
+                message
+            );
+            return Err(anyhow!(message))
+        }
+    };
     let json_value: Value = serde_json::from_str(&file_content)?;
 
     // Dummy implementations for querying that would need to be replaced with actual logic.
@@ -71,17 +128,48 @@ fn fetch_and_display(queries: &Queries, include_object_query: bool) -> anyhow::R
 }
 
 fn process_mode(mode: &str, query: &str, include_object_query: bool) -> anyhow::Result<()> {
-    let queries = get_queries(mode, query)?;
+    let queries = match get_queries(mode, query) {
+        Ok(q) => q,
+        Err(error) => {
+            let message = "Error encountered when attempting to get queries";
+            error!(
+                ?error,
+                mode =? mode,
+                query =? query,
+                ?include_object_query,
+                message
+            );
+            return Err(anyhow!(message))
+        }
+    };
     fetch_and_display(&queries, include_object_query)
 }
 
-use rustyline::error::ReadlineError;
-use rustyline::DefaultEditor;
-
 // Main function with rustyline integration
-fn main() -> Result<(), ReadlineError> {
+fn main() -> anyhow::Result<()> {
+
+    dotenvy::dotenv().map_err(|_e| {
+        debug!(
+            name: "startup",
+            "No .env file found. Continuing..."
+        );
+        warn!(
+            name: "startup",
+            "TODO: revisit if we need to implement config file loading from e.g. Hub MW configuration files"
+        );
+    }).ok();
+
     // Initialize the logger
-    log::init_logging();
+    let filter = logging::get_env_filter();
+
+    match logging::init_tracing_subscriber(filter) {
+        Ok(_) => {
+            println!("Successfully configured logging using provided filter");
+        }
+        Err(error) => {
+            eprintln!("Failed to configure logging using provided filter: {}", error);
+        }
+    };
 
     // Create a rustyline Editor instance
     let mut rl = DefaultEditor::new()?;
@@ -145,7 +233,10 @@ fn main() -> Result<(), ReadlineError> {
                             };
                             match process_mode(&mode, query, include_object_query) {
                                 Ok(_) => println!("Command processed: {}", query),
-                                Err(err) => eprintln!("Error: {}", err),
+                                Err(error) => error!(
+                                    ?error,
+                                    "Error encountered when running command"
+                                ),
                             }
                         }
                     }
