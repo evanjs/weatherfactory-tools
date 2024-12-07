@@ -1,6 +1,5 @@
 use std::str::FromStr;
-use tracing::{error, info, instrument};
-use tracing_subscriber::{EnvFilter, FmtSubscriber, Layer};
+use tracing_subscriber::{EnvFilter, Layer};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::{SubscriberInitExt, TryInitError};
 
