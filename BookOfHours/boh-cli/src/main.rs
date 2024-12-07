@@ -9,8 +9,6 @@ use rustyline::error::ReadlineError;
 use rustyline::DefaultEditor;
 use std::io::Read;
 
-use crate::model::aspects::Aspects;
-use crate::model::skills::Skills;
 use crate::model::tomes::Tomes;
 use crate::model::{skills, tomes, FindById};
 use anyhow::{anyhow, bail, Error};
@@ -121,9 +119,12 @@ fn execute_query<'a>(json: &Value, query: &str, query_type: &QueryType) -> anyho
             match serde_json::from_value::<Tomes>(json.clone()) {
                 Ok(o) => {
                     let tome: Option<&tomes::Element> = o.contains_id_case_insensitive(query);
-                    let t = match tome {
+                    
+                    //dbg!(&t);
+                    match tome {
                         Some(t) => {
-                            let o = Ok(serde_json::to_value(t).unwrap_or(serde_json::Value::Null))
+                            
+                            Ok(serde_json::to_value(t).unwrap_or(serde_json::Value::Null))
                                 .inspect(|r| {
                                     let j = serde_json::to_string_pretty(&r)
                                         .unwrap_or("null".to_string());
@@ -131,17 +132,14 @@ fn execute_query<'a>(json: &Value, query: &str, query_type: &QueryType) -> anyho
                                         %j,
                                         "Got tomes"
                                     );
-                                });
-                            o
+                                })
                         }
                         None => {
                             let message = "Failed to deserialize JSON";
                             error!(?query, ?query_type, message);
                             bail!(message)
                         }
-                    };
-                    //dbg!(&t);
-                    t
+                    }
                 }
                 Err(error) => {
                     let message = "Failed to deserialize JSON";

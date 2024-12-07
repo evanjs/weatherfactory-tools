@@ -36,7 +36,7 @@ pub trait FindById {
     {
         self.get_collection()
             .as_ref()
-            .into_iter()
+            .iter()
             .find(|&element| element.id().eq_ignore_ascii_case(id))
     }
 
@@ -53,7 +53,7 @@ pub trait FindById {
 
         self.get_collection()
             .as_ref()
-            .into_iter()
+            .iter()
             .find(|element| {
                 trace!(
                     element_id =? element.id(),
@@ -95,7 +95,7 @@ pub trait FindById {
         );
         self.get_collection()
             .as_ref()
-            .into_iter()
+            .iter()
             .find(|element| {
                 trace!(
                     element_id =? element.id(),
