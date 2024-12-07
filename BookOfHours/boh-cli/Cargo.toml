@@ -29,3 +29,5 @@ strum = { version = "0.26.3", features = ["derive"] }
 strum_macros = "0.26.4"
 clipboard-rs = "0.2.2"
 serde_with = "3.11.0"
+serde_json_path_to_error = "0.1.4"
+encoding_rs = "0.8.35"

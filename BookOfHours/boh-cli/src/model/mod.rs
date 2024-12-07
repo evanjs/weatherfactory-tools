@@ -4,6 +4,8 @@ use tracing::{debug, trace, warn};
 pub(crate) mod aspects;
 pub(crate) mod skills;
 pub(crate) mod tomes;
+pub(crate) mod aspected_items;
+pub(crate) mod consider_books;
 
 // Define a shared trait for elements that have an ID field
 pub trait Identifiable {

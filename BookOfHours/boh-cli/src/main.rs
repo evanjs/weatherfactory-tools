@@ -1,21 +1,25 @@
 mod logging;
 mod model;
 
-use std::fs;
 use std::fs::File;
 use tracing::{debug, error, info, trace, warn};
 
 use rustyline::error::ReadlineError;
 use rustyline::DefaultEditor;
 use std::io::Read;
+use encoding_rs::{UTF_8, UTF_16LE};
 
 use crate::model::tomes::Tomes;
-use crate::model::{skills, tomes, FindById};
+use crate::model::{aspected_items, aspects, consider_books, skills, tomes, FindById};
 use anyhow::{anyhow, bail, Error};
 use clipboard_rs::{Clipboard, ClipboardContext};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use strum_macros::EnumString;
+use crate::model::aspected_items::AspectedItems;
+use crate::model::aspects::Aspects;
+use crate::model::consider_books::ConsiderBooks;
+use crate::model::skills::Skills;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Queries {
@@ -36,6 +40,8 @@ enum QueryType {
     AspectedItems,
     #[strum(serialize = "contamination aspects")]
     ContaminationAspects,
+    #[strum(serialize = "consider books")]
+    ConsiderBooks
 }
 
 // Function to read configuration
@@ -89,6 +95,10 @@ fn get_queries(mode: &str, query: &str) -> anyhow::Result<Queries> {
             format!("{}/elements/aspecteditems.json", base_dir),
             QueryType::AspectedItems,
         ),
+        "consider books" => (
+            format!("{}/recipes/1_consider_books.json", base_dir),
+            QueryType::ConsiderBooks,
+        ),
         _ => return Err(Error::msg(format!("Invalid mode: {}", mode))),
     };
 
@@ -99,11 +109,15 @@ fn get_queries(mode: &str, query: &str) -> anyhow::Result<Queries> {
     })
 }
 
-fn determine_value_type(json_val: &Value) -> anyhow::Result<(String, String)> {
+#[tracing::instrument(skip(json_val))]
+fn determine_value_type(json_val: &Value) -> anyhow::Result<(String, String, String)> {
+    trace!(json_data_to_distinguish =% serde_json::to_string_pretty(json_val)?.to_string());
     if let Ok(tome) = serde_json::from_value::<tomes::Element>(json_val.clone()) {
-        Ok((tome.label, tome.desc.unwrap_or("N/A".to_string())))
+        Ok((tome.label, tome.desc.unwrap_or("N/A".to_string()), "Tome".to_string()))
     } else if let Ok(skill) = serde_json::from_value::<skills::Element>(json_val.clone()) {
-        Ok((skill.label, skill.desc.unwrap_or("N/A".to_string())))
+        Ok((skill.label, skill.desc.unwrap_or("N/A".to_string()), "Skill".to_string()))
+    } else if let Ok(aspected_item) = serde_json::from_value::<aspected_items::Element>(json_val.clone()) {
+        Ok((aspected_item.label, aspected_item.desc.unwrap_or("N/A".to_string()), "Aspected Item".to_string()))
     } else {
         bail!("Failed to determine the type of JSON value");
     }
@@ -116,44 +130,76 @@ fn execute_query<'a>(json: &Value, query: &str, query_type: &QueryType) -> anyho
     match query_type {
         QueryType::Tomes => {
             trace!(?query, ?query_type, "Attempting to get tome from query");
-            match serde_json::from_value::<Tomes>(json.clone()) {
-                Ok(o) => {
-                    let tome: Option<&tomes::Element> = o.contains_id_case_insensitive(query);
-                    
-                    //dbg!(&t);
-                    match tome {
-                        Some(t) => {
-                            
-                            Ok(serde_json::to_value(t).unwrap_or(serde_json::Value::Null))
-                                .inspect(|r| {
-                                    let j = serde_json::to_string_pretty(&r)
-                                        .unwrap_or("null".to_string());
-                                    info!(
-                                        %j,
-                                        "Got tomes"
-                                    );
-                                })
-                        }
-                        None => {
-                            let message = "Failed to deserialize JSON";
-                            error!(?query, ?query_type, message);
-                            bail!(message)
-                        }
-                    }
-                }
-                Err(error) => {
-                    let message = "Failed to deserialize JSON";
-                    error!(?error, message);
-                    bail!(message)
-                }
-            }
+            let o: Tomes = serde_json::from_value(json.clone())
+                .map_err(|_| anyhow::anyhow!("Failed to deserialize JSON"))?;
+            let tome: &tomes::Element = o
+                .contains_id_case_insensitive(query)
+                .ok_or_else(|| anyhow::anyhow!("No data found in Tome document"))?;
+            serde_json::to_value(tome).map_err(|_| anyhow::anyhow!("Failed to serialize Tome"))
+        }
+        QueryType::Skills => {
+            trace!(?query, ?query_type, "Attempting to get skill from query");
+            let o: Skills = serde_json::from_value(json.clone())
+                .map_err(|_| anyhow::anyhow!("Failed to deserialize JSON"))?;
+            let skill: &skills::Element = o
+                .contains_id_case_insensitive(query)
+                .ok_or_else(|| anyhow::anyhow!("Failed to find skill using the provided query"))?;
+            serde_json::to_value(skill).map_err(|error| anyhow::anyhow!("Failed to serialize Skill: {}", error))
+        }
+        QueryType::Aspects => {
+            trace!(?query, ?query_type, "Attempting to get aspect from query");
+            let o: Aspects = serde_json_path_to_error::from_value(json.clone())
+                .map_err(|error| anyhow::anyhow!("Failed to deserialize JSON for Aspects: {}", error))?;
+            let skill: &aspects::Element = o
+                .contains_id_case_insensitive(query)
+                .ok_or_else(|| anyhow::anyhow!("Failed to find aspect using the provided query"))?;
+            serde_json_path_to_error::to_value(skill).map_err(|error| anyhow::anyhow!("Failed to serialize Aspect: {}", error))
+        }
+        QueryType::ConsiderBooks => {
+            trace!(?query, ?query_type, ?json, "Attempting to get consider book from query");
+            let o: ConsiderBooks = serde_json_path_to_error::from_value(json.clone())
+                .map_err(|error| anyhow::anyhow!("Failed to deserialize JSON for Consider Books: {}", error))?;
+            let consider_book: &consider_books::Element = o
+                .contains_id_case_insensitive(query)
+                .ok_or_else(|| anyhow::anyhow!("Failed to find consider book using the provided query"))?;
+            serde_json_path_to_error::to_value(consider_book).map_err(|error| anyhow::anyhow!("Failed to serialize Consider Book: {}", error))
+        }
+        QueryType::AspectedItems => {
+            trace!(?query, ?query_type, "Attempting to get aspected items from query");
+            let o: AspectedItems = serde_json_path_to_error::from_value(json.clone())
+                .map_err(|error| anyhow::anyhow!("Failed to deserialize JSON for Aspected Items: {}", error))?;
+            let aspected_item: &aspected_items::Element = o
+                .contains_id_case_insensitive(query)
+                .ok_or_else(|| anyhow::anyhow!("Failed to find aspected item using the provided query"))?;
+            serde_json_path_to_error::to_value(aspected_item).map_err(|error| anyhow::anyhow!("Failed to serialize Aspected Item: {}", error))
         }
         _ => {
-            let message = "Query type not handled";
-            error!(?query, ?query_type, message);
-            bail!(message)
+            error!(?query, ?query_type, "Query type not handled");
+            bail!("Query type not handled")
         }
     }
+}
+
+fn read_file_content(file_path: &str) -> anyhow::Result<String> {
+    let buf = std::fs::read(file_path)?;
+
+    let content = if buf.starts_with(&[0xFF, 0xFE]) {
+        // UTF-16 LE with BOM
+        let (content, _, had_errors) = UTF_16LE.decode(&buf[2..]);
+        if had_errors {
+            return Err(anyhow!("Error decoding file: invalid UTF-16 LE"));
+        }
+        content.into_owned()
+    } else {
+        // Try decoding as UTF-8
+        let (content, _, had_errors) = UTF_8.decode(&buf);
+        if had_errors {
+            return Err(anyhow!("Error decoding file: invalid UTF-8"));
+        }
+        content.into_owned()
+    };
+
+    Ok(content)
 }
 
 // Function to fetch and display the results
@@ -168,7 +214,8 @@ fn fetch_and_display(
         "Attempting to read file"
     );
 
-    let file_content = match fs::read_to_string(&queries.bhcontent_path) {
+
+    let file_content = match read_file_content(&queries.bhcontent_path) {
         Ok(o) => o,
         Err(error) => {
             let message = "Error encountered when attempting to read file";
@@ -180,7 +227,9 @@ fn fetch_and_display(
             return Err(anyhow!(message));
         }
     };
-    let json_value: Value = serde_json::from_str(&file_content)?;
+
+    let sanitized_file_content = file_content.replace("\r\n", "\n");
+    let json_value: Value = serde_json::from_str(&sanitized_file_content)?;
 
     let a = execute_query(&json_value, &queries.name_query, &query_type)?;
     copy_and_print(a, include_object_query)?;
@@ -189,14 +238,23 @@ fn fetch_and_display(
 
 #[tracing::instrument(skip(serializable_value))]
 fn copy_and_print(serializable_value: Value, print_object: bool) -> anyhow::Result<()> {
-    if let Ok((key, value)) = determine_value_type(&serializable_value) {
+    if let Ok((key, value, object_type)) = determine_value_type(&serializable_value) {
+        debug!(
+            label =? key,
+            description =? value,
+            ?object_type,
+            "Found object to print"
+        );
         let ctx = ClipboardContext::new().expect("Failed to get clipboard context");
 
         // Copy tab-separated values to clipboard for pasting into Excel
         let combined = format!("{}\t{}", key, value);
         ctx.set_text(combined.clone())
             .expect("Failed to set clipboard contents");
-        // Print
+        // Print "label: description"
+        println!("{}: {}", key, value);
+
+        // Print full object if prompted
         if print_object {
             println!("{:#?}", combined);
         }
@@ -281,7 +339,7 @@ fn main() -> anyhow::Result<()> {
     }
 
     'repl: loop {
-        let readline = rl.readline("Enter command (or 'exit' to quit): ");
+        let readline = rl.readline("Enter command (or 'exit' to quit; 'help' for available modes): ");
         match readline {
             Ok(line) => {
                 rl.add_history_entry(line.as_str())?;
@@ -289,6 +347,18 @@ fn main() -> anyhow::Result<()> {
 
                 match input {
                     "exit" => break 'repl,
+                    "help" => {
+                        println!(r##"
+Available modes:
+    skills
+    aspects
+    contamination aspects
+    tomes
+    aspected items
+    consider books
+    reset (return to mode select)
+                        "##)
+                    },
                     "reset" => {
                         mode.clear();
                         println!("Mode reset. Please select a new mode.");
@@ -304,6 +374,7 @@ fn main() -> anyhow::Result<()> {
                                 "contamination aspects",
                                 "tomes",
                                 "aspected items",
+                                "consider books"
                             ]
                             .contains(&mode.as_str())
                             {
