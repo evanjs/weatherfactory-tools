@@ -5,19 +5,19 @@ use std::fs;
 use std::fs::File;
 use tracing::{debug, error, info, trace, warn};
 
-use std::io::Read;
 use rustyline::error::ReadlineError;
 use rustyline::DefaultEditor;
+use std::io::Read;
 
-use anyhow::{anyhow, bail, Error};
-use clipboard_rs::{Clipboard, ClipboardContext};
-use serde::{Serialize, Deserialize};
-use serde_json::Value;
-use strum_macros::EnumString;
-use crate::model::{skills, tomes, FindById};
 use crate::model::aspects::Aspects;
 use crate::model::skills::Skills;
 use crate::model::tomes::Tomes;
+use crate::model::{skills, tomes, FindById};
+use anyhow::{anyhow, bail, Error};
+use clipboard_rs::{Clipboard, ClipboardContext};
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use strum_macros::EnumString;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Queries {
@@ -37,7 +37,7 @@ enum QueryType {
     #[strum(serialize = "aspected items")]
     AspectedItems,
     #[strum(serialize = "contamination aspects")]
-    ContaminationAspects
+    ContaminationAspects,
 }
 
 // Function to read configuration
@@ -50,44 +50,54 @@ fn read_config() -> anyhow::Result<String> {
     if let Some(base_path) = config["bhcontent_path"].as_str() {
         Ok(base_path.to_string())
     } else {
-        Err(anyhow::Error::msg("Missing 'bhcontent_path' in config.json"))
+        Err(anyhow::Error::msg(
+            "Missing 'bhcontent_path' in config.json",
+        ))
     }
 }
 
 // Function to get queries based on mode and query
 #[tracing::instrument]
 fn get_queries(mode: &str, query: &str) -> anyhow::Result<Queries> {
-
     // Read the base directory from the config
     let base_dir = match read_config() {
         Ok(dir) => dir,
         Err(error) => {
             let message = "Error encountered when attempting to read config file";
-            error!(
-                ?error,
-                ?mode,
-                ?query,
-                message
-            );
-            return Err(anyhow!(message))
+            error!(?error, ?mode, ?query, message);
+            return Err(anyhow!(message));
         }
     };
 
     // Construct the file path using the base directory
     let (bhcontent_path, query_type) = match mode.to_lowercase().as_str() {
-        "skills" => (format!("{}/elements/skills.json", base_dir), QueryType::Skills),
-        "aspects" => (format!("{}/elements/_aspects.json", base_dir), QueryType::Aspects),
-        "contamination aspects" => (format!("{}/elements/contamination_aspects.json", base_dir), QueryType::ContaminationAspects),
-        "tomes" => (format!("{}/elements/tomes.json", base_dir), QueryType::Tomes),
-        "aspected items" => (format!("{}/elements/aspecteditems.json", base_dir), QueryType::AspectedItems),
+        "skills" => (
+            format!("{}/elements/skills.json", base_dir),
+            QueryType::Skills,
+        ),
+        "aspects" => (
+            format!("{}/elements/_aspects.json", base_dir),
+            QueryType::Aspects,
+        ),
+        "contamination aspects" => (
+            format!("{}/elements/contamination_aspects.json", base_dir),
+            QueryType::ContaminationAspects,
+        ),
+        "tomes" => (
+            format!("{}/elements/tomes.json", base_dir),
+            QueryType::Tomes,
+        ),
+        "aspected items" => (
+            format!("{}/elements/aspecteditems.json", base_dir),
+            QueryType::AspectedItems,
+        ),
         _ => return Err(Error::msg(format!("Invalid mode: {}", mode))),
     };
-
 
     Ok(Queries {
         bhcontent_path: bhcontent_path.to_string(),
         name_query: query.to_string(),
-        query_type
+        query_type,
     })
 }
 
@@ -107,56 +117,42 @@ fn execute_query<'a>(json: &Value, query: &str, query_type: &QueryType) -> anyho
     // Implement JSON querying logic here
     match query_type {
         QueryType::Tomes => {
-            trace!(
-               ?query,
-               ?query_type,
-               "Attempting to get tome from query"
-           );
+            trace!(?query, ?query_type, "Attempting to get tome from query");
             match serde_json::from_value::<Tomes>(json.clone()) {
                 Ok(o) => {
                     let tome: Option<&tomes::Element> = o.contains_id_case_insensitive(query);
                     let t = match tome {
                         Some(t) => {
                             let o = Ok(serde_json::to_value(t).unwrap_or(serde_json::Value::Null))
-                                .inspect(|r|{
-                                   let j = serde_json::to_string_pretty(&r).unwrap_or("null".to_string());
+                                .inspect(|r| {
+                                    let j = serde_json::to_string_pretty(&r)
+                                        .unwrap_or("null".to_string());
                                     info!(
                                         %j,
                                         "Got tomes"
                                     );
                                 });
                             o
-                        },
+                        }
                         None => {
                             let message = "Failed to deserialize JSON";
-                            error!(
-                               ?query,
-                               ?query_type,
-                               message
-                           );
+                            error!(?query, ?query_type, message);
                             bail!(message)
                         }
                     };
                     //dbg!(&t);
                     t
-                },
+                }
                 Err(error) => {
                     let message = "Failed to deserialize JSON";
-                    error!(
-                        ?error,
-                        message
-                    );
+                    error!(?error, message);
                     bail!(message)
                 }
             }
-        },
+        }
         _ => {
             let message = "Query type not handled";
-            error!(
-               ?query,
-               ?query_type,
-               message
-           );
+            error!(?query, ?query_type, message);
             bail!(message)
         }
     }
@@ -164,16 +160,18 @@ fn execute_query<'a>(json: &Value, query: &str, query_type: &QueryType) -> anyho
 
 // Function to fetch and display the results
 #[tracing::instrument]
-fn fetch_and_display(queries: &Queries, include_object_query: bool, query_type: QueryType) -> anyhow::Result<()> {
+fn fetch_and_display(
+    queries: &Queries,
+    include_object_query: bool,
+    query_type: QueryType,
+) -> anyhow::Result<()> {
     debug!(
         queries_bhcontent_path =? queries.bhcontent_path,
         "Attempting to read file"
     );
 
     let file_content = match fs::read_to_string(&queries.bhcontent_path) {
-        Ok(o) => {
-            o
-        }
+        Ok(o) => o,
         Err(error) => {
             let message = "Error encountered when attempting to read file";
             error!(
@@ -181,7 +179,7 @@ fn fetch_and_display(queries: &Queries, include_object_query: bool, query_type: 
                 queries_bhcontent_path =? queries.bhcontent_path,
                 message
             );
-            return Err(anyhow!(message))
+            return Err(anyhow!(message));
         }
     };
     let json_value: Value = serde_json::from_str(&file_content)?;
@@ -198,10 +196,10 @@ fn copy_and_print(serializable_value: Value, print_object: bool) -> anyhow::Resu
 
         // Copy tab-separated values to clipboard for pasting into Excel
         let combined = format!("{}\t{}", key, value);
-        ctx.set_text(combined.clone()).expect("Failed to set clipboard contents");
+        ctx.set_text(combined.clone())
+            .expect("Failed to set clipboard contents");
         // Print
         if print_object {
-
             println!("{:#?}", combined);
         }
     } else {
@@ -212,7 +210,12 @@ fn copy_and_print(serializable_value: Value, print_object: bool) -> anyhow::Resu
 }
 
 #[tracing::instrument]
-fn process_mode(mode: &str, query: &str, include_object_query: bool, query_type: QueryType) -> anyhow::Result<()> {
+fn process_mode(
+    mode: &str,
+    query: &str,
+    include_object_query: bool,
+    query_type: QueryType,
+) -> anyhow::Result<()> {
     let queries = match get_queries(mode, query) {
         Ok(q) => q,
         Err(error) => {
@@ -224,7 +227,7 @@ fn process_mode(mode: &str, query: &str, include_object_query: bool, query_type:
                 ?include_object_query,
                 message
             );
-            return Err(anyhow!(message))
+            return Err(anyhow!(message));
         }
     };
     fetch_and_display(&queries, include_object_query, query_type)
@@ -232,7 +235,6 @@ fn process_mode(mode: &str, query: &str, include_object_query: bool, query_type:
 
 // Main function with rustyline integration
 fn main() -> anyhow::Result<()> {
-
     dotenvy::dotenv().map_err(|_e| {
         debug!(
             name: "startup",
@@ -252,7 +254,10 @@ fn main() -> anyhow::Result<()> {
             println!("Successfully configured logging using provided filter");
         }
         Err(error) => {
-            eprintln!("Failed to configure logging using provided filter: {}", error);
+            eprintln!(
+                "Failed to configure logging using provided filter: {}",
+                error
+            );
         }
     };
 
@@ -277,7 +282,7 @@ fn main() -> anyhow::Result<()> {
         }
     }
 
-    'repl: loop{
+    'repl: loop {
         let readline = rl.readline("Enter command (or 'exit' to quit): ");
         match readline {
             Ok(line) => {
@@ -324,24 +329,28 @@ fn main() -> anyhow::Result<()> {
                                 ?include_object_query,
                                 "Attempting to process mode"
                             );
-                            match process_mode(&mode, query, include_object_query, match mode.parse::<QueryType>() {
-                                Ok(query_type) => query_type,
-                                Err(error) => {
-                                    error!(
-                                        ?error,
-                                        ?mode,
-                                        ?query,
-                                        ?include_object_query,
-                                        "Encountered error when attempting to process mode"
-                                    );
-                                    continue;
+                            match process_mode(
+                                &mode,
+                                query,
+                                include_object_query,
+                                match mode.parse::<QueryType>() {
+                                    Ok(query_type) => query_type,
+                                    Err(error) => {
+                                        error!(
+                                            ?error,
+                                            ?mode,
+                                            ?query,
+                                            ?include_object_query,
+                                            "Encountered error when attempting to process mode"
+                                        );
+                                        continue;
+                                    }
                                 },
-                            }) {
+                            ) {
                                 Ok(_) => println!("Command processed: {}", query),
-                                Err(error) => error!(
-                                    ?error,
-                                    "Error encountered when running command"
-                                ),
+                                Err(error) => {
+                                    error!(?error, "Error encountered when running command")
+                                }
                             }
                         }
                     }

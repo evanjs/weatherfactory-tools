@@ -1,7 +1,7 @@
 use std::str::FromStr;
-use tracing_subscriber::{EnvFilter, Layer};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::{SubscriberInitExt, TryInitError};
+use tracing_subscriber::{EnvFilter, Layer};
 
 #[tracing::instrument]
 pub(crate) fn get_env_filter() -> EnvFilter {
@@ -11,15 +11,14 @@ pub(crate) fn get_env_filter() -> EnvFilter {
 }
 
 pub(crate) fn init_tracing_subscriber(env_filter: EnvFilter) -> Result<(), TryInitError> {
-    let subscriber = tracing_subscriber::Registry::default()
-        .with(
-            tracing_subscriber::fmt::layer()
-                .pretty()
-                .with_target(true)
-                .with_thread_names(true)
-                .with_line_number(true)
-                .with_file(true)
-                .with_filter(env_filter),
-        );
+    let subscriber = tracing_subscriber::Registry::default().with(
+        tracing_subscriber::fmt::layer()
+            .pretty()
+            .with_target(true)
+            .with_thread_names(true)
+            .with_line_number(true)
+            .with_file(true)
+            .with_filter(env_filter),
+    );
     subscriber.try_init()
 }
