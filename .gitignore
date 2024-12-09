@@ -54,6 +54,10 @@ Cargo.lock
 .idea/**/uiDesigner.xml
 .idea/**/dbnavigator.xml
 
+# Not from GitHub JetBrains template
+## This file contains VCS directory mappings for the project
+.idea/vcs.xml
+
 # Gradle
 .idea/**/gradle.xml
 .idea/**/libraries
