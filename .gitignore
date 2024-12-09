@@ -21,6 +21,10 @@ Cargo.lock
 **/history.sqlite
 **/history.txt
 
+# current name of the application config file for boh-cli
+# this file will be sourced from the user's current direcetory ("$PWD") at the moment
+**/config.json
+
 # ---
 
 # JetBrains
