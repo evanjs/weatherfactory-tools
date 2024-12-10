@@ -144,10 +144,12 @@ impl GameCollectionType for Skills {
 }
 
 impl GameElementDetails for Element {
-    fn get_label(&self) -> &str {
-        &self.label
+    fn get_label(&self) -> String {
+        self.clone().label.into()
     }
     fn get_desc(&self) -> String {
-        self.desc.clone().unwrap_or_default()
+        let a = self.clone().desc;
+        let b = a.unwrap_or_default();
+        b.clone()
     }
 }

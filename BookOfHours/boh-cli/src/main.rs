@@ -2,7 +2,7 @@ mod logging;
 
 mod model;
 
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 use std::fs::File;
 use tracing::{debug, error, info, trace, warn};
 
@@ -52,7 +52,7 @@ enum QueryType {
 }
 
 /// Read and parse the configuration from `.env`
-/// TODO: load `config.json` from (platform-dependent) application data folder rather than `.env`
+/// TODO: load `config.json` from (platform-dependent) application data folder rather than `.env` file
 ///
 /// returns: Result<PathBuf, Error>
 ///
@@ -204,7 +204,8 @@ fn execute_query<W>(wrapper: W, query: &str, query_type: QueryType, verbose_outp
 where
     W: FindById + GameCollectionType + From<Value>,
     <W as FindById>::Item: Identifiable + GameElementDetails + Debug + Clone + Serialize,
-    <W as FindById>::Collection: AsRef<[<W as FindById>::Item]>
+    <W as FindById>::Collection: AsRef<[<W as FindById>::Item]>,
+//    <<W as FindById>::Item as GameElementDetails>::S: Debug
 
 {
     //let collection = wrapper.get_collection();
@@ -421,6 +422,7 @@ fn read_file_content(file_path: &str) -> anyhow::Result<String> {
 fn copy_and_print<U>(serializable_value: U, query_type: QueryType, verbose_output: bool) -> anyhow::Result<()>
 where
     U: Serialize + GameElementDetails,
+//    <U as GameElementDetails>::S: Debug + Display,
     //U: FindById + Serialize + Debug + GameElementDetails,
     //<U as FindById>::Item: Debug + Serialize ,
     //<U as FindById>::Collection: AsRef<[<U as FindById>::Item]>,

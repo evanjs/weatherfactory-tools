@@ -31,7 +31,7 @@ pub struct Element {
     #[serde(rename = "ID")]
     pub(crate) id: Option<String>,
     #[serde(rename = "Label")]
-    pub(crate) label: String,
+    pub(crate) label: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -78,7 +78,7 @@ impl FindById for Aspects {
 
 impl From<Value> for Aspects {
     fn from(value: Value) -> Self {
-        serde_json_path_to_error::from_value(value).unwrap()
+        serde_json_path_to_error::from_value(value).expect("Failed to parse Aspects value")
     }
 }
 
@@ -87,10 +87,14 @@ impl GameCollectionType for Aspects {
 }
 
 impl GameElementDetails for Element {
-    fn get_label(&self) -> &str {
-        &self.label
+    fn get_label(&self) -> String {
+        let a = self.clone().label;
+        let b = a.unwrap_or_default();
+        b.clone()
     }
     fn get_desc(&self) -> String {
-        self.desc.clone().unwrap_or_default()
+        let a = self.clone().desc;
+        let b = a.unwrap_or_default();
+        b.clone()
     }
 }

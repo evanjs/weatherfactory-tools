@@ -20,7 +20,7 @@ pub struct Element {
     pub(crate) desc: Option<String>,
     pub(crate) warmup: Option<i64>,
     pub(crate) craftable: Option<bool>,
-    pub(crate) label: String,
+    pub(crate) label: Option<String>,
     pub(crate) effects: Option<Effects>,
     pub(crate) aspects: Option<HashMap<String, i64>>,
     pub(crate) extantreqs: Option<Extantreqs>,
@@ -376,10 +376,15 @@ impl GameCollectionType for ConsiderBooks {
 }
 
 impl GameElementDetails for Element {
-    fn get_label(&self) -> &str {
-        &self.label
+
+    fn get_label(&self) -> String {
+        let a = self.clone().label;
+        let b = a.unwrap_or_default();
+        b.clone()
     }
     fn get_desc(&self) -> String {
-        self.desc.clone().unwrap_or_default()
+        let a = self.clone().desc;
+        let b = a.unwrap_or_default();
+        b.clone()
     }
 }

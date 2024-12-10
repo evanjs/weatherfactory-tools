@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 use tracing::{debug, trace, warn};
 use crate::QueryType;
 
@@ -19,7 +19,7 @@ pub trait GameCollectionType {
 }
 
 pub trait GameElementDetails {
-    fn get_label(&self) -> &str;
+    fn get_label(&self) -> String;
     fn get_desc(&self) -> String;
 }
 
