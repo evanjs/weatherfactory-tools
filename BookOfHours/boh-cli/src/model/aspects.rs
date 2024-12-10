@@ -1,8 +1,10 @@
-use crate::model::{FindById, Identifiable};
+use crate::model::{FindById, GameCollectionType, GameElementDetails, Identifiable};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use serde_json::Value;
+use crate::QueryType;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct Aspects {
     pub(crate) elements: Vec<Element>,
 }
@@ -11,7 +13,7 @@ pub struct Aspects {
 #[serde(rename_all = "camelCase")]
 pub struct Element {
     #[serde(rename = "id")]
-    pub(crate) element_id: String,
+    pub(crate) element_id: Option<String>,
     #[serde(rename = "label")]
     pub(crate) element_label: Option<String>,
     pub(crate) ishidden: Option<bool>,
@@ -27,9 +29,9 @@ pub struct Element {
     pub(crate) ambits: Option<HashMap<String, i64>>,
     pub(crate) commute: Option<Vec<String>>,
     #[serde(rename = "ID")]
-    pub(crate) id: String,
+    pub(crate) id: Option<String>,
     #[serde(rename = "Label")]
-    pub(crate) label: Option<String>,
+    pub(crate) label: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -46,8 +48,22 @@ pub enum IsHidden {
 }
 
 impl Identifiable for Element {
+    /// TODO: review [Identifiable::id()] for each implementor to determine what makes sense
+    ///   - One of the ID variants might not be available in all cases
     fn id(&self) -> &str {
-        &self.id
+        match (&self.id, &self.element_id) {
+            (a, None) => {
+                a.as_ref().unwrap()
+            },
+            (None, b) => {
+                b.as_ref().unwrap()
+            }
+            // Is this valid?
+            // Will/do any items have both id _and_ ID?
+            (a, b) => {
+                b.as_ref().unwrap()
+            }
+        }
     }
 }
 
@@ -57,5 +73,24 @@ impl FindById for Aspects {
 
     fn get_collection(&self) -> &Self::Collection {
         self.elements.get_collection()
+    }
+}
+
+impl From<Value> for Aspects {
+    fn from(value: Value) -> Self {
+        serde_json_path_to_error::from_value(value).unwrap()
+    }
+}
+
+impl GameCollectionType for Aspects {
+    fn get_collection_type(&self) -> QueryType { QueryType::Aspects }
+}
+
+impl GameElementDetails for Element {
+    fn get_label(&self) -> &str {
+        &self.label
+    }
+    fn get_desc(&self) -> String {
+        self.desc.clone().unwrap_or_default()
     }
 }

@@ -1,9 +1,11 @@
-use crate::model::{FindById, Identifiable};
+use crate::model::{FindById, GameCollectionType, GameElementDetails, Identifiable};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use std::collections::HashMap;
+use serde_json::Value;
+use crate::QueryType;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct Tomes {
     pub(crate) elements: Vec<Element>,
 }
@@ -160,5 +162,24 @@ impl FindById for Tomes {
     #[tracing::instrument(skip(self))]
     fn get_collection(&self) -> &Self::Collection {
         self.elements.get_collection()
+    }
+}
+
+impl From<Value> for Tomes {
+    fn from(value: Value) -> Self {
+        serde_json_path_to_error::from_value(value).unwrap()
+    }
+}
+
+impl GameCollectionType for Tomes {
+    fn get_collection_type(&self) -> QueryType { QueryType::Tomes }
+}
+
+impl GameElementDetails for Element {
+    fn get_label(&self) -> &str {
+        &self.label
+    }
+    fn get_desc(&self) -> String {
+        self.desc.clone().unwrap_or_default()
     }
 }

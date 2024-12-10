@@ -1,8 +1,10 @@
-use crate::model::{FindById, Identifiable};
+use crate::model::{FindById, GameCollectionType, GameElementDetails, Identifiable};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use serde_json::Value;
+use crate::QueryType;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct Skills {
     pub(crate) elements: Vec<Element>,
 }
@@ -20,6 +22,12 @@ pub struct Element {
     pub(crate) slots: Option<Vec<Slot>>,
     #[serde(rename = "AlphaLabelOverride")]
     pub(crate) alpha_label_override: Option<String>,
+}
+
+impl Element {
+    pub(crate) fn get_label(&self) -> &str {
+        &self.label
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -122,5 +130,24 @@ impl FindById for Skills {
 
     fn get_collection(&self) -> &Self::Collection {
         self.elements.get_collection()
+    }
+}
+
+impl From<Value> for Skills {
+    fn from(value: Value) -> Self {
+        serde_json_path_to_error::from_value(value).unwrap()
+    }
+}
+
+impl GameCollectionType for Skills {
+    fn get_collection_type(&self) -> QueryType { QueryType::Skills }
+}
+
+impl GameElementDetails for Element {
+    fn get_label(&self) -> &str {
+        &self.label
+    }
+    fn get_desc(&self) -> String {
+        self.desc.clone().unwrap_or_default()
     }
 }

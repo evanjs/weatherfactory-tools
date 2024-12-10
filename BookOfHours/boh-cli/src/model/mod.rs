@@ -1,16 +1,29 @@
 use std::fmt::Debug;
 use tracing::{debug, trace, warn};
+use crate::QueryType;
 
 pub(crate) mod aspects;
 pub(crate) mod skills;
 pub(crate) mod tomes;
 pub(crate) mod aspected_items;
 pub(crate) mod consider_books;
+pub(crate) mod config;
 
 // Define a shared trait for elements that have an ID field
 pub trait Identifiable {
     fn id(&self) -> &str;
 }
+
+pub trait GameCollectionType {
+    fn get_collection_type(&self) -> QueryType;
+}
+
+pub trait GameElementDetails {
+    fn get_label(&self) -> &str;
+    fn get_desc(&self) -> String;
+}
+
+
 
 // Define a trait for collections that can find elements by ID
 pub trait FindById {
@@ -123,4 +136,5 @@ pub trait FindById {
                 None
             })
     }
+
 }
