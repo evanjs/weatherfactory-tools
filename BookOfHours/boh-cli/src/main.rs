@@ -458,15 +458,29 @@ where
                 .expect(&format!("Failed to get lesson using ID: {extra_key}"));
             println!("{}", lesson_id);
         }
-        for (extra_key, extra_value) in serializable_value.get_extra().iter().filter(|(k,v)|{
+        for (aspected_item_key, aspected_item_value) in serializable_value.get_extra().iter().filter(|(k,v)|{
             k.contains("reading")
         }) {
-            // let lesson_id = game_docs
-            //     .lessons
-            //     .get_lesson_string(&extra_value)
-            //     .expect("Failed to get memory using ID: {extra_key}");
-            warn!("Implement logic to get memory name using ID: {extra_value}");
-            //println!("{}", lesson_id);
+            let memory_id = game_docs
+                .aspected_items
+                .get_memory_string(&aspected_item_value)
+                .expect(&format!("Failed to get memory using ID: {aspected_item_key}"));
+            println!("{}", memory_id);
+
+            game_docs
+                .aspected_items
+                .get_aspects(&aspected_item_value)
+                .expect(&format!("Failed to get aspect using ID: {aspected_item_key}"))
+                .iter().for_each(|(aspect_name, aspect_amount)| {
+                debug!(
+                    ?aspected_item_key,
+                    ?aspected_item_value,
+                    ?aspect_name,
+                    ?aspect_amount,
+                    "Found aspect to print"
+                );
+                println!("{aspect_name}: {aspect_amount}");
+            })
         }
     } else {
         println!("No extra items for {label}");

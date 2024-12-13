@@ -1,6 +1,7 @@
 use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 use serde_json::Value;
+use tracing::{info, warn};
 use crate::model::{FindById, GameCollectionType, GameElementDetails, Identifiable};
 use crate::QueryType;
 
@@ -113,5 +114,17 @@ impl AspectedItems {
             f.id.as_str() == id
         })
             .map(|e| e.label.clone())
+    }
+
+    pub(crate) fn get_aspects(&self, id: &str) -> Option<HashMap<String, String>> {
+        self.elements.iter().find(|&f| f.id.as_str() == id)
+            .and_then(|element| {
+                element.aspects.as_ref().map(|aspects| {
+                    aspects.iter()
+                        .filter(|(key, value)|!key.contains("boost"))
+                        .map(|(key, value)| (key.clone(), value.to_string()))
+                        .collect()
+                })
+            })
     }
 }
