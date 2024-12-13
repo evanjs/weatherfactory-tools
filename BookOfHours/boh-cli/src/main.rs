@@ -27,7 +27,7 @@ use crate::model::aspects::Aspects;
 use crate::model::consider_books::ConsiderBooks;
 use crate::model::skills::Skills;
 use crate::model::config::Config;
-
+use crate::model::lessons::Lessons;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Queries {
@@ -199,8 +199,8 @@ fn get_queries(mode: &str, query: &str) -> anyhow::Result<Queries> {
 /// ```
 /// 
 /// ```
-#[tracing::instrument(skip(wrapper))]
-fn execute_query<W>(wrapper: W, query: &str, query_type: QueryType, verbose_output: bool) -> anyhow::Result<()>
+#[tracing::instrument(skip(game_documents, wrapper))]
+fn execute_query<W>(game_documents: Arc<GameDocuments>, wrapper: W, query: &str, query_type: QueryType, verbose_output: bool) -> anyhow::Result<()>
 where
     W: FindById + GameCollectionType + From<Value>,
     <W as FindById>::Item: Identifiable + GameElementDetails + Debug + Clone + Serialize,
@@ -217,12 +217,12 @@ where
         .collect::<Vec<_>>()
         .first()
         .cloned()
-        .ok_or(anyhow!("aaaah"))
+        .ok_or(anyhow!("No result found for query: {query}"))
         ?;
 
     // let item = coll[0].clone();
 
-    copy_and_print(results, query_type, verbose_output)
+    copy_and_print(game_documents, results, query_type, verbose_output)
 
     //serde_json::to_value(item).map_err(|error| anyhow::anyhow!("Failed to serialize item: {}", error))
     // _ => {
@@ -418,8 +418,8 @@ fn read_file_content(file_path: &str) -> anyhow::Result<String> {
 /// copy_and_print(element, QueryType::Aspect
 ///
 /// ```
-#[tracing::instrument(skip(serializable_value))]
-fn copy_and_print<U>(serializable_value: U, query_type: QueryType, verbose_output: bool) -> anyhow::Result<()>
+#[tracing::instrument(skip(game_documents, serializable_value))]
+fn copy_and_print<U>(game_documents: Arc<GameDocuments>, serializable_value: U, query_type: QueryType, verbose_output: bool) -> anyhow::Result<()>
 where
     U: Serialize + GameElementDetails,
 //    <U as GameElementDetails>::S: Debug + Display,
@@ -427,6 +427,8 @@ where
     //<U as FindById>::Item: Debug + Serialize ,
     //<U as FindById>::Collection: AsRef<[<U as FindById>::Item]>,
 {
+    let game_docs = game_documents.clone();
+
     let label = serializable_value.get_label();
     let description = serializable_value.get_desc();
 
@@ -447,8 +449,24 @@ where
 
     // print each extra item
     if !serializable_value.get_extra().is_empty() {
-        for extra in serializable_value.get_extra() {
-            println!("{}: {}", extra.0, extra.1);
+        for (extra_key, extra_value) in serializable_value.get_extra().iter().filter(|(k,v)|{
+            k.contains("mastering")
+        }) {
+            let lesson_id = game_docs
+                .lessons
+                .get_lesson_string(&extra_value)
+                .expect(&format!("Failed to get lesson using ID: {extra_key}"));
+            println!("{}", lesson_id);
+        }
+        for (extra_key, extra_value) in serializable_value.get_extra().iter().filter(|(k,v)|{
+            k.contains("reading")
+        }) {
+            // let lesson_id = game_docs
+            //     .lessons
+            //     .get_lesson_string(&extra_value)
+            //     .expect("Failed to get memory using ID: {extra_key}");
+            warn!("Implement logic to get memory name using ID: {extra_value}");
+            //println!("{}", lesson_id);
         }
     } else {
         println!("No extra items for {label}");
@@ -511,17 +529,17 @@ fn process_mode(
         QueryType::Tomes => {
             trace!(?query_type, "Attempting to get tomes from query");
             let val = game_documents.tomes.clone();
-            execute_query::<Tomes>(val, queries.name_query.as_str(), query_type.clone(), verbose_output)
+            execute_query::<Tomes>(shared_game_documents.clone(), val, queries.name_query.as_str(), query_type.clone(), verbose_output)
         }
         QueryType::Skills => {
             trace!(?query_type, "Attempting to get skills from query");
             let val = game_documents.skills.clone();
-            execute_query::<Skills>(val, queries.name_query.as_str(), query_type.clone(), verbose_output)
+            execute_query::<Skills>(shared_game_documents.clone(), val, queries.name_query.as_str(), query_type.clone(), verbose_output)
         }
         QueryType::Aspects => {
             trace!(?query_type, "Attempting to get aspects from query");
             let val = game_documents.aspects.clone();
-            execute_query::<Aspects>(val, queries.name_query.as_str(), query_type.clone(), verbose_output)
+            execute_query::<Aspects>(shared_game_documents.clone(), val, queries.name_query.as_str(), query_type.clone(), verbose_output)
         }
         QueryType::ContaminationAspects => {
             trace!(?query_type, "Attempting to get contamination aspects from query");
@@ -532,12 +550,12 @@ fn process_mode(
         QueryType::AspectedItems => {
             trace!(?query_type, "Attempting to get aspected items from query");
             let val = game_documents.aspected_items.clone();
-            execute_query::<AspectedItems>(val, queries.name_query.as_str(), query_type.clone(), verbose_output)
+            execute_query::<AspectedItems>(shared_game_documents.clone(), val, queries.name_query.as_str(), query_type.clone(), verbose_output)
         }
         QueryType::ConsiderBooks => {
             trace!(?query_type, "Attempting to get consider books from query");
             let val = game_documents.consider_books.clone();
-            execute_query::<ConsiderBooks>(val, queries.name_query.as_str(), query_type.clone(), verbose_output)
+            execute_query::<ConsiderBooks>(shared_game_documents.clone(), val, queries.name_query.as_str(), query_type.clone(), verbose_output)
         }
         _ => bail!("Unhandled game document type for game data from json handler")
     }
@@ -718,6 +736,7 @@ struct GameDocuments {
     tomes: Tomes,
     consider_books: ConsiderBooks,
     skills: Skills,
+    lessons: Lessons
     //contamination_aspects: dyn GameCollection<QueryType::ContaminationAspects>,
 }
 
@@ -745,6 +764,7 @@ impl GameDocuments {
         tomes: Tomes,
         consider_books: ConsiderBooks,
         skills: Skills,
+        lessons: Lessons
         //contamination_aspects: Aspects
     ) -> Self {
         GameDocuments {
@@ -752,7 +772,8 @@ impl GameDocuments {
             aspected_items,
             tomes,
             consider_books,
-            skills
+            skills,
+            lessons
         }
     }
 
@@ -791,12 +812,16 @@ impl GameDocuments {
         let consider_books_path = path.join("recipes").join( "1_consider_books.json");
         let consider_books_data = deserialize_json_with_arbitrary_encoding(&consider_books_path)?;
 
+        let lessons_path = path.join("elements").join("xlessons.json");
+        let lessons_data = deserialize_json_with_arbitrary_encoding(&lessons_path)?;
+
         let game_documents = GameDocuments::new(
             aspects_data.into(),
             aspected_items_data.into(),
             tomes,
             consider_books_data.into(),
             skills_data.into(),
+            lessons_data.into(),
             //contamination_aspects_data.into()
         );
         Ok(game_documents)

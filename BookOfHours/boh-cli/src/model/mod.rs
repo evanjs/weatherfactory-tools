@@ -9,6 +9,7 @@ pub(crate) mod tomes;
 pub(crate) mod aspected_items;
 pub(crate) mod consider_books;
 pub(crate) mod config;
+pub(crate) mod lessons;
 
 // Define a shared trait for elements that have an ID field
 pub trait Identifiable {

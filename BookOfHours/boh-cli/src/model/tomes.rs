@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use std::collections::HashMap;
 use serde_json::Value;
-use tracing::{error, warn};
+use tracing::{debug, error, info, warn};
 use crate::QueryType;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
@@ -186,6 +186,7 @@ impl GameElementDetails for Element {
         b.clone()
     }
 
+    #[tracing::instrument(skip(self))]
     fn get_extra(&self) -> HashMap<String, String> {
         let mut map: HashMap<String, String> = HashMap::new();
         match &self.xtriggers {
@@ -198,6 +199,11 @@ impl GameElementDetails for Element {
 
                 let (mk, mv) = m.clone().iter()
                     .filter(|(k,v)|{
+                        info!(
+                            key =? k,
+                            value =? v,
+                            "Checking if mastering ID starts with query"
+                        );
                         k.starts_with("mastering")
                     })
                     .map(|(k, v)| {
@@ -211,6 +217,11 @@ impl GameElementDetails for Element {
 
                 let (rk, rv) = m.clone().into_iter()
                     .filter(|(k, v)| {
+                        debug!(
+                            key =? k,
+                            value =? v,
+                            "Checking if reading ID starts with query"
+                        );
                         k.starts_with("reading")
                     })
                     .map(|(k, v)| {
@@ -222,6 +233,10 @@ impl GameElementDetails for Element {
 
                 map.insert(rk, rv);
 
+                info!(
+                    ?map,
+                    "Produced extra map"
+                );
                 map
             }
         }
