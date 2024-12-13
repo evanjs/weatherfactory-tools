@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fmt::{Debug, Display};
 use tracing::{debug, trace, warn};
 use crate::QueryType;
@@ -21,6 +22,9 @@ pub trait GameCollectionType {
 pub trait GameElementDetails {
     fn get_label(&self) -> String;
     fn get_desc(&self) -> String;
+    fn get_extra(&self) -> HashMap<String, String> {
+        HashMap::new()
+    }
 }
 
 

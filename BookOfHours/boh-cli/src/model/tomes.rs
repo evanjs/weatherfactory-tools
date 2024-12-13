@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use std::collections::HashMap;
 use serde_json::Value;
+use tracing::{error, warn};
 use crate::QueryType;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
@@ -183,5 +184,46 @@ impl GameElementDetails for Element {
         let a = self.clone().desc;
         let b = a.unwrap_or_default();
         b.clone()
+    }
+
+    fn get_extra(&self) -> HashMap<String, String> {
+        let mut map: HashMap<String, String> = HashMap::new();
+        match &self.xtriggers {
+            None => {
+                warn!("No xtriggers found for object");
+                map
+            }
+            Some(s) => {
+                let m = s.clone();
+
+                let (mk, mv) = m.clone().iter()
+                    .filter(|(k,v)|{
+                        k.starts_with("mastering")
+                    })
+                    .map(|(k, v)| {
+                        (k.clone(), v.first().clone().unwrap().id.clone().unwrap())
+                    }).collect::<Vec<_>>()
+                    .first()
+                    .unwrap()
+                    .clone();
+
+                map.insert(mk, mv);
+
+                let (rk, rv) = m.clone().into_iter()
+                    .filter(|(k, v)| {
+                        k.starts_with("reading")
+                    })
+                    .map(|(k, v)| {
+                        (k.clone(), v.first().clone().unwrap().id.clone().unwrap())
+                    }).collect::<Vec<_>>()
+                    .first()
+                    .unwrap()
+                    .clone();
+
+                map.insert(rk, rv);
+
+                map
+            }
+        }
     }
 }

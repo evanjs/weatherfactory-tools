@@ -445,6 +445,16 @@ where
     // Print "label: description"
     println!("{}: {}", label, description);
 
+    // print each extra item
+    if !serializable_value.get_extra().is_empty() {
+        for extra in serializable_value.get_extra() {
+            println!("{}: {}", extra.0, extra.1);
+        }
+    } else {
+        println!("No extra items for {label}");
+    }
+
+
     // Print full object if prompted
     if verbose_output {
         let string = serde_json::to_string_pretty(&serializable_value)?;
