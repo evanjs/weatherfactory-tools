@@ -100,3 +100,18 @@ impl GameElementDetails for Element {
         b.clone()
     }
 }
+
+impl AspectedItems {
+    #[tracing::instrument(skip(self))]
+    pub(crate) fn get_memory_string(&self, id: &str) -> Option<String> {
+        self.elements.iter().find(|&f| {
+            info!(
+                existing_id =? &f.id,
+                queried_id =? id,
+                "Checking if query matches ID"
+            );
+            f.id.as_str() == id
+        })
+            .map(|e| e.label.clone())
+    }
+}

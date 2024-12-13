@@ -461,12 +461,11 @@ where
         for (extra_key, extra_value) in serializable_value.get_extra().iter().filter(|(k,v)|{
             k.contains("reading")
         }) {
-            // let lesson_id = game_docs
-            //     .lessons
-            //     .get_lesson_string(&extra_value)
-            //     .expect("Failed to get memory using ID: {extra_key}");
-            warn!("Implement logic to get memory name using ID: {extra_value}");
-            //println!("{}", lesson_id);
+            let memory_id = game_docs
+                .aspected_items
+                .get_memory_string(&extra_value)
+                .expect(&format!("Failed to get memory using ID: {extra_key}"));
+            println!("{}", memory_id);
         }
     } else {
         println!("No extra items for {label}");
