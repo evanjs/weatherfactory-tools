@@ -2,15 +2,12 @@ mod logging;
 
 mod model;
 
-use std::fmt::{Debug, Display};
-use std::fs::File;
+use std::fmt::Debug;
 use tracing::{debug, error, info, trace, warn};
 
 use encoding_rs::{UTF_16LE, UTF_8};
 use rustyline::error::ReadlineError;
 use rustyline::{DefaultEditor, Editor};
-use std::io::Read;
-use std::ops::Deref;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -21,11 +18,10 @@ use crate::model::consider_books::ConsiderBooks;
 use crate::model::lessons::Lessons;
 use crate::model::skills::Skills;
 use crate::model::tomes::Tomes;
-use crate::model::{aspected_items, aspects, consider_books, skills, tomes, FindById, GameCollectionType, GameElementDetails, Identifiable};
+use crate::model::{FindById, GameCollectionType, GameElementDetails, Identifiable};
 use anyhow::{anyhow, bail, Error};
 use clipboard_rs::{Clipboard, ClipboardContext};
 use rustyline::history::DefaultHistory;
-use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use strum_macros::EnumString;
@@ -210,8 +206,7 @@ where
 {
     let results = wrapper
         .contains_id_case_insensitive(query)
-        .ok_or_else(|| anyhow::anyhow!("Failed to find item using the provided query"))
-        .map(|m|m.clone())
+        .ok_or_else(|| anyhow::anyhow!("Failed to find item using the provided query")).cloned()
         .into_iter()
         .collect::<Vec<_>>()
         .first()
@@ -325,8 +320,8 @@ where
         }) {
             let lesson_id = game_docs
                 .lessons
-                .get_lesson_string(&extra_value)
-                .expect(&format!("Failed to get lesson using ID: {extra_key}"));
+                .get_lesson_string(extra_value)
+                .unwrap_or_else(|| panic!("Failed to get lesson using ID: {extra_key}"));
             println!("{}", lesson_id);
         }
         for (aspected_item_key, aspected_item_value) in serializable_value.get_extra().iter().filter(|(k,v)|{
@@ -334,14 +329,14 @@ where
         }) {
             let memory_id = game_docs
                 .aspected_items
-                .get_memory_string(&aspected_item_value)
-                .expect(&format!("Failed to get memory using ID: {aspected_item_key}"));
+                .get_memory_string(aspected_item_value)
+                .unwrap_or_else(|| panic!("Failed to get memory using ID: {aspected_item_key}"));
             println!("{}", memory_id);
 
             game_docs
                 .aspected_items
-                .get_aspects(&aspected_item_value)
-                .expect(&format!("Failed to get aspect using ID: {aspected_item_key}"))
+                .get_aspects(aspected_item_value)
+                .unwrap_or_else(|| panic!("Failed to get aspect using ID: {aspected_item_key}"))
                 .iter().for_each(|(aspect_name, aspect_amount)| {
                 debug!(
                     ?aspected_item_key,

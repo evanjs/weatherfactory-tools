@@ -145,7 +145,7 @@ impl GameCollectionType for Skills {
 
 impl GameElementDetails for Element {
     fn get_label(&self) -> String {
-        self.clone().label.into()
+        self.clone().label
     }
     fn get_desc(&self) -> String {
         let a = self.clone().desc;

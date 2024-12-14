@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::fmt::{Debug, Display};
+use std::fmt::Debug;
 use tracing::{debug, trace, warn};
 use crate::QueryType;
 

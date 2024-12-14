@@ -93,7 +93,7 @@ impl GameCollectionType for AspectedItems {
 
 impl GameElementDetails for Element {
     fn get_label(&self) -> String {
-        self.label.clone().into()
+        self.label.clone()
     }
     fn get_desc(&self) -> String {
         let a = self.clone().desc;

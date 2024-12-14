@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use std::collections::HashMap;
 use serde_json::Value;
-use tracing::{debug, error, info, warn};
+use tracing::{debug, info, warn};
 use crate::QueryType;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
@@ -178,7 +178,7 @@ impl GameCollectionType for Tomes {
 
 impl GameElementDetails for Element {
     fn get_label(&self) -> String {
-        self.label.clone().into()
+        self.label.clone()
     }
     fn get_desc(&self) -> String {
         let a = self.clone().desc;
@@ -207,7 +207,7 @@ impl GameElementDetails for Element {
                         k.starts_with("mastering")
                     })
                     .map(|(k, v)| {
-                        (k.clone(), v.first().clone().unwrap().id.clone().unwrap())
+                        (k.clone(), v.first().unwrap().id.clone().unwrap())
                     }).collect::<Vec<_>>()
                     .first()
                     .unwrap()
@@ -225,7 +225,7 @@ impl GameElementDetails for Element {
                         k.starts_with("reading")
                     })
                     .map(|(k, v)| {
-                        (k.clone(), v.first().clone().unwrap().id.clone().unwrap())
+                        (k.clone(), v.first().unwrap().id.clone().unwrap())
                     }).collect::<Vec<_>>()
                     .first()
                     .unwrap()
