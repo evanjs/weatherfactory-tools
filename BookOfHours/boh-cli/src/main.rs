@@ -517,8 +517,14 @@ fn main() -> anyhow::Result<()> {
     maybe_init_history_file(&mut rl, &history_path)?;
 
     'repl: loop {
-        let readline =
-            rl.readline("Enter command (or 'exit' to quit; 'help' for available modes): ");
+        let current_mode_string = format!("{} > ", mode);
+        let readline_string = if mode.is_empty() {
+            "Enter command ('exit' to quit; 'help' for more commands): ".into()
+        } else {
+            format!("{}", current_mode_string)
+        };
+
+        let readline = rl.readline(readline_string.as_str());
         match readline {
             Ok(line) => {
                 rl.add_history_entry(line.as_str())?;
@@ -529,6 +535,9 @@ fn main() -> anyhow::Result<()> {
                     "help" => {
                         println!(
                             r##"
+Commands:
+    reset (return to mode select)
+    clear (clear the screen)
 Available modes:
     skills
     aspects
@@ -536,7 +545,6 @@ Available modes:
     tomes
     aspected items
     consider books
-    reset (return to mode select)
                         "##
                         )
                     }
