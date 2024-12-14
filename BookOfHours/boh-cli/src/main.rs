@@ -6,29 +6,29 @@ use std::fmt::{Debug, Display};
 use std::fs::File;
 use tracing::{debug, error, info, trace, warn};
 
+use encoding_rs::{UTF_16LE, UTF_8};
 use rustyline::error::ReadlineError;
 use rustyline::{DefaultEditor, Editor};
 use std::io::Read;
 use std::ops::Deref;
 use std::path::PathBuf;
 use std::sync::Arc;
-use encoding_rs::{UTF_8, UTF_16LE};
 
+use crate::model::aspected_items::AspectedItems;
+use crate::model::aspects::Aspects;
+use crate::model::config::Config;
+use crate::model::consider_books::ConsiderBooks;
+use crate::model::lessons::Lessons;
+use crate::model::skills::Skills;
 use crate::model::tomes::Tomes;
 use crate::model::{aspected_items, aspects, consider_books, skills, tomes, FindById, GameCollectionType, GameElementDetails, Identifiable};
 use anyhow::{anyhow, bail, Error};
 use clipboard_rs::{Clipboard, ClipboardContext};
 use rustyline::history::DefaultHistory;
-use serde::{Deserialize, Serialize};
 use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use strum_macros::EnumString;
-use crate::model::aspected_items::AspectedItems;
-use crate::model::aspects::Aspects;
-use crate::model::consider_books::ConsiderBooks;
-use crate::model::skills::Skills;
-use crate::model::config::Config;
-use crate::model::lessons::Lessons;
 
 static APP_PATH_FULL: &str = "evanjs/weatherfactory-tools/book-of-hours_cli";
 static APP_CONFIG_FILE_NAME: &str = "app_config";
@@ -185,41 +185,6 @@ fn get_queries(mode: &str, query: &str) -> anyhow::Result<Queries> {
     })
 }
 
-// #[tracing::instrument(skip(input_value))]
-// fn determine_value_type<T>(input_value: &T, query_type: QueryType) -> anyhow::Result<(&str, String, &str)> where
-//     T: GameElementDetails
-// {
-//     match query_type {
-//         QueryType::Tomes => {
-//             Ok((&input_value.get_label(), input_value.get_desc(), "Tome"))
-//         },
-//         QueryType::Skills => {
-//             Ok((input_value.get_label(), input_value.get_desc(), "Skill"))
-//         }
-//         QueryType::Aspects => {
-//             Ok((input_value.get_label(), input_value.get_desc(), "Aspect"))
-//         }
-//         QueryType::AspectedItems => {
-//             Ok((input_value.get_label(), input_value.get_desc(), "Aspected Item"))
-//         }
-//         _ => {
-//             bail!("Failed to determine collection type for game data from json handler");
-//         }
-//     }
-//
-//     //Ok(("".into(), "".into(), "".into()))
-//     // trace!(json_data_to_distinguish =% serde_json::to_string_pretty(json_val)?.to_string());
-//     // if let Ok(tome) = serde_json::from_value::<tomes::Element>(json_val.into()) {
-//     //     Ok((tome.label, tome.desc.unwrap_or("N/A".to_string()), "Tome".to_string()))
-//     // } else if let Ok(skill) = serde_json::from_value::<skills::Element>(json_val.clone().into()) {
-//     //     Ok((skill.label, skill.desc.unwrap_or("N/A".to_string()), "Skill".to_string()))
-//     // } else if let Ok(aspected_item) = serde_json::from_value::<aspected_items::Element>(json_val.into()) {
-//     //     Ok((aspected_item.label, aspected_item.desc.unwrap_or("N/A".to_string()), "Aspected Item".to_string()))
-//     // } else {
-//     //     bail!("Failed to determine the type of JSON value");
-//     // }
-// }
-
 ///
 ///
 /// # Arguments
@@ -241,11 +206,8 @@ fn execute_query<W>(game_documents: Arc<GameDocuments>, wrapper: W, query: &str,
 where
     W: FindById + GameCollectionType + From<Value>,
     <W as FindById>::Item: Identifiable + GameElementDetails + Debug + Clone + Serialize,
-    <W as FindById>::Collection: AsRef<[<W as FindById>::Item]>,
-//    <<W as FindById>::Item as GameElementDetails>::S: Debug
-
+    <W as FindById>::Collection: AsRef<[<W as FindById>::Item]>
 {
-    //let collection = wrapper.get_collection();
     let results = wrapper
         .contains_id_case_insensitive(query)
         .ok_or_else(|| anyhow::anyhow!("Failed to find item using the provided query"))
@@ -257,16 +219,7 @@ where
         .ok_or(anyhow!("No result found for query: {query}"))
         ?;
 
-    // let item = coll[0].clone();
-
     copy_and_print(game_documents, results, query_type, verbose_output)
-
-    //serde_json::to_value(item).map_err(|error| anyhow::anyhow!("Failed to serialize item: {}", error))
-    // _ => {
-    //     error!(?query, ?query_type, "Query type not handled");
-    //     bail!("Query type not handled")
-    // }
-
 }
 
 
@@ -307,127 +260,6 @@ fn read_file_content(file_path: &str) -> anyhow::Result<String> {
     Ok(content)
 }
 
-
-// /// Execute the provided query and print the results to stdout
-// ///
-// /// # Arguments
-// ///
-// /// * `queries`: details pertaining to the query being executed
-// /// * `verbose_output`: whether to print extra details about the in-game item
-// /// * `query_type`: the type of document being queried (TODO: move to `Element`, remove from this function)
-// /// * `shared_game_documents`: the shared container of (deserialized) documents from the exported game data
-// ///
-// /// returns: Result<(), Error>
-// ///
-// /// # Examples
-// ///
-// /// ```
-// /// use crate::model::{Queries, QueryType, GameDocuments};
-// /// use std::sync::Arc;
-// ///
-// /// let queries = Queries {
-// ///     name_query: "sky stories".to_string(),
-// ///     ..Default::default()
-// /// };
-// /// let verbose_output = false;
-// /// let query_type = QueryType::Skills;
-// /// let shared_game_documents = Arc::new(GameDocuments::default());
-// ///
-// /// let result = fetch_and_display(&queries, verbose_output, query_type, shared_game_documents);
-// /// assert!(result.is_ok(), "Failed to fetch and display query results");
-// /// ```
-// #[tracing::instrument(skip(shared_game_documents))]
-// fn fetch_and_display(
-//     queries: &Queries,
-//     verbose_output: bool,
-//     query_type: QueryType,
-//     shared_game_documents: Arc<GameDocuments>
-// ) -> anyhow::Result<()>
-// {
-//     let shared_game_docs = shared_game_documents.clone();
-//     get_game_data_from_json(shared_game_docs, &query_type, verbose_output, queries)
-// }
-
-// ///
-// ///
-// /// # Arguments
-// ///
-// /// * `shared_game_documents`: the shared container of (deserialized) documents from the exported game data
-// /// * `query_type`: the type of document being queried (TODO: move to `Element`, remove from this function)
-// /// * `verbose_output`: whether to print extra details about the in-game item
-// /// * `queries`: details pertaining to the query being executed
-// ///
-// /// returns: Result<(), Error>
-// ///
-// /// # Examples
-// ///
-// /// ```
-// /// use crate::model::{aspects::Element, QueryType, Queries, GameDocuments};
-// /// use std::sync::Arc;
-// ///
-// /// let shared_game_documents = Arc::new(GameDocuments::default());
-// /// let queries = Queries {
-// ///     name_query: "knock".to_string(),
-// ///     ..Default::default()
-// /// };
-// /// let query_type = QueryType::Aspects;
-// /// let include_object_query = true;
-// ///
-// /// let result = get_game_data_from_json(
-// ///     shared_game_documents,
-// ///     &query_type,
-// ///     include_object_query,
-// ///     &queries
-// /// );
-// ///
-// /// assert!(result.is_ok(), "Failed to process query data");
-// /// ```
-// #[tracing::instrument(skip(shared_game_documents))]
-// fn get_game_data_from_json(
-//     shared_game_documents: Arc<GameDocuments>,
-//     query_type: &QueryType,
-//     include_object_query: bool,
-//     queries: &Queries
-// ) -> anyhow::Result<()>{
-//     let game_documents = shared_game_documents.clone();
-//     match query_type {
-//         QueryType::Tomes => {
-//             trace!(?query_type, "Attempting to get tomes from query");
-//             let val = game_documents.tomes.clone();
-//             execute_query(val, queries.name_query.as_str(), query_type.clone(), include_object_query)?;
-//         }
-//         QueryType::Skills => {
-//             trace!(?query_type, "Attempting to get skills from query");
-//             let val = game_documents.skills.clone();
-//             execute_query(val, queries.name_query.as_str(), query_type.clone(), include_object_query)?;
-//         }
-//         QueryType::Aspects => {
-//             trace!(?query_type, "Attempting to get aspects from query");
-//             let val = game_documents.aspects.clone();
-//             execute_query(val, queries.name_query.as_str(), query_type.clone(), include_object_query)?;
-//         }
-//         QueryType::ContaminationAspects => {
-//             trace!(?query_type, "Attempting to get contamination aspects from query");
-//             // let val = game_documents.contamination_aspects.clone();
-//             // copy_and_print(val, include_object_query)?;
-//             bail!("Unhandled game document type for game data from json handler")
-//         }
-//         QueryType::AspectedItems => {
-//             trace!(?query_type, "Attempting to get aspected items from query");
-//             let val = game_documents.aspected_items.clone();
-//             execute_query(val, queries.name_query.as_str(), query_type.clone(), include_object_query)?;
-//         }
-//         QueryType::ConsiderBooks => {
-//             trace!(?query_type, "Attempting to get consider books from query");
-//             let val = game_documents.consider_books.clone();
-//             execute_query(val, queries.name_query.as_str(), query_type.clone(), include_object_query)?;
-//         }
-//         _ => bail!("Unhandled game document type for game data from json handler")
-//     }
-//
-//     Ok(())
-// }
-
 /// Print helpful data about a single in-game item (type: `Element`)
 /// This function also copies a line to the clipboard for easy input in Excel
 ///
@@ -456,13 +288,14 @@ fn read_file_content(file_path: &str) -> anyhow::Result<String> {
 ///
 /// ```
 #[tracing::instrument(skip(game_documents, serializable_value))]
-fn copy_and_print<U>(game_documents: Arc<GameDocuments>, serializable_value: U, query_type: QueryType, verbose_output: bool) -> anyhow::Result<()>
+fn copy_and_print<U>(
+    game_documents: Arc<GameDocuments>,
+    serializable_value: U,
+    query_type: QueryType,
+    verbose_output: bool
+) -> anyhow::Result<()>
 where
-    U: Serialize + GameElementDetails,
-//    <U as GameElementDetails>::S: Debug + Display,
-    //U: FindById + Serialize + Debug + GameElementDetails,
-    //<U as FindById>::Item: Debug + Serialize ,
-    //<U as FindById>::Collection: AsRef<[<U as FindById>::Item]>,
+    U: Serialize + GameElementDetails
 {
     let game_docs = game_documents.clone();
 
@@ -481,6 +314,7 @@ where
     let combined = format!("{}\t{}", label, description);
     ctx.set_text(combined.clone())
         .expect("Failed to set clipboard contents");
+
     // Print "label: description"
     println!("{}: {}", label, description);
 
@@ -523,8 +357,7 @@ where
         println!("No extra items for {label}");
     }
 
-
-    // Print full object if prompted
+    // Print full object if `verbose_output` is enabled
     if verbose_output {
         let string = serde_json::to_string_pretty(&serializable_value)?;
         println!("{}", string);
@@ -575,7 +408,7 @@ fn process_mode(
             return Err(anyhow!(message));
         }
     };
-    //fetch_and_display(&queries, verbose_output, query_type, shared_game_documents.clone())
+
     let game_documents = shared_game_documents.clone();
     match query_type {
         QueryType::Tomes => {
@@ -642,12 +475,7 @@ fn main() -> anyhow::Result<()> {
     };
 
     let bhcontent_core_path = read_config()?;
-    dbg!(&bhcontent_core_path);
     let app_config_file_path = confy::get_configuration_file_path(APP_PATH_FULL, Some(APP_CONFIG_FILE_NAME))?;
-    dbg!(&app_config_file_path);
-    // let path_of_config_path = get_relative_app_path(app_config_file_path.clone());
-    // dbg!(&path_of_config_path);
-
     let game_documents_arc = init_json_data(&bhcontent_core_path)?;
 
     // Create a rustyline Editor instance
