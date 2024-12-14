@@ -7,7 +7,7 @@ use std::fs::File;
 use tracing::{debug, error, info, trace, warn};
 
 use rustyline::error::ReadlineError;
-use rustyline::DefaultEditor;
+use rustyline::{DefaultEditor, Editor};
 use std::io::Read;
 use std::ops::Deref;
 use std::path::PathBuf;
@@ -18,6 +18,7 @@ use crate::model::tomes::Tomes;
 use crate::model::{aspected_items, aspects, consider_books, skills, tomes, FindById, GameCollectionType, GameElementDetails, Identifiable};
 use anyhow::{anyhow, bail, Error};
 use clipboard_rs::{Clipboard, ClipboardContext};
+use rustyline::history::DefaultHistory;
 use serde::{Deserialize, Serialize};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
@@ -28,6 +29,9 @@ use crate::model::consider_books::ConsiderBooks;
 use crate::model::skills::Skills;
 use crate::model::config::Config;
 use crate::model::lessons::Lessons;
+
+static APP_PATH_FULL: &str = "evanjs/weatherfactory-tools/book-of-hours_cli";
+static APP_CONFIG_FILE_NAME: &str = "app_config";
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Queries {
@@ -51,10 +55,10 @@ enum QueryType {
     ConsiderBooks
 }
 
-/// Read and parse the configuration from `.env`
-/// TODO: load `config.json` from (platform-dependent) application data folder rather than `.env` file
+/// Read and parse the configuration using the `confy` crate
+/// Loads the `app_config.ini` file under the platform-dependent application data directory
 ///
-/// returns: Result<PathBuf, Error>
+/// Returns: Result<PathBuf, Error>
 ///
 /// # Examples
 ///
@@ -62,29 +66,62 @@ enum QueryType {
 /// let configured_bhcontent_path = read_config()?;
 /// assert_ne!(configured_bhcontent_path.as_os_str().len(), 0);
 /// ```
-#[tracing::instrument]
 fn read_config() -> anyhow::Result<PathBuf> {
-    debug!("Attempting to read config file");
-    let envy_test = envy::from_env::<Config>();
+    debug!("Attempting to load application config file using confy");
+
+    // Load the configuration using confy
+    let config: Config = confy::load(APP_PATH_FULL, Some("app_config"))?;
     trace!(
-        ?envy_test,
-        "Envy config dump"
-    );
-    match envy::from_env::<Config>() {
-        Ok(config) => {
-            trace!(
-                ?config,
-                "Parsed config file"
-            );
-            Ok(config.bhcontent_path.into())
-        }, Err(error) => {
-            error!(
-                ?error,
-                "Error encountered when reading config file"
-            );
-            bail!("Failed to find 'bhcontent_path' variable in env")
-        }
+            ?config,
+            "Loaded config using confy"
+        );
+
+    // Ensure the path exists and is valid
+    if config.bhcontent_path.is_empty() {
+        eprintln!("Failed to find 'bhcontent_path' value in the config");
+        eprintln!("Please configure bhcontent_path to point to a valid dump of the game data");
+        eprintln!("Ensure the directory configured contains/end with the path components 'ExportedProject/Assets/StreamingAssets/bhcontent/core'");
+        bail!("Configuration is invalid: 'bhcontent_path' is empty");
     }
+
+    Ok(PathBuf::from(config.bhcontent_path))
+}
+
+#[tracing::instrument]
+fn get_history_file_path(config_path: &PathBuf) -> anyhow::Result<PathBuf> {
+    // Ensure path separators match those of the current system
+    // This doesn't affect file read/write operations
+    // But it makes logged paths cleaner/appear more correct
+    // e.g. `evanjs/weatherfactory` (Linux), `evanjs\\weatherfactory` (Windows)
+    let config_path_normalized = config_path.canonicalize()?;
+
+    let history_dir = config_path_normalized.parent().inspect(|&p|{
+        info!(
+            directory =? p,
+            "Determined application config directory"
+        );
+    }).ok_or_else(|| {
+        anyhow::anyhow!("Failed to determine configuration directory.")
+    })?;
+
+
+    // Determine the platform and decide history file name
+    let history_file = if cfg!(feature = "with-sqlite-history") {
+        history_dir.join("history.sqlite")
+    } else if cfg!(feature = "with-file-history") {
+        history_dir.join("history.txt")
+    } else {
+        return Err(anyhow::anyhow!(
+            "History handling requires 'with-sqlite-history' or 'with-file-history' feature enabled"
+        ));
+    };
+
+    info!(
+        ?history_file,
+        "Determined history file path"
+    );
+
+    Ok(history_file)
 }
 
 /// Search the game documents using the provided mode and query
@@ -496,6 +533,7 @@ where
     Ok(())
 }
 
+//noinspection ALL,RsUnreachablePatterns
 ///
 ///
 /// # Arguments
@@ -603,9 +641,14 @@ fn main() -> anyhow::Result<()> {
         }
     };
 
-    let config = read_config()?;
+    let bhcontent_core_path = read_config()?;
+    dbg!(&bhcontent_core_path);
+    let app_config_file_path = confy::get_configuration_file_path(APP_PATH_FULL, Some(APP_CONFIG_FILE_NAME))?;
+    dbg!(&app_config_file_path);
+    // let path_of_config_path = get_relative_app_path(app_config_file_path.clone());
+    // dbg!(&path_of_config_path);
 
-    let game_documents_arc = init_json_data(&config)?;
+    let game_documents_arc = init_json_data(&bhcontent_core_path)?;
 
     // Create a rustyline Editor instance
     let mut rl = DefaultEditor::new()?;
@@ -614,19 +657,9 @@ fn main() -> anyhow::Result<()> {
     #[allow(unused_assignments)]
     let mut include_object_query = false;
 
-    cfg_if::cfg_if! {
-        if #[cfg(feature = "with-sqlite-history")] {
-             if rl.load_history("history.sqlite").is_err() {
-                info!("No previous history.");
-            }
-        } else if #[cfg(feature = "with-file-history")] {
-            if rl.load_history("history.txt").is_err() {
-                info!("No previous history.");
-            }
-        } else {
-            error!("History not loaded because neither 'with-sqlite-history' nor 'with-file-history' features are enabled");
-        }
-    }
+    let history_path = get_history_file_path(&app_config_file_path)?;
+
+   maybe_init_history_file(&mut rl, &history_path)?;
 
     'repl: loop {
         let readline = rl.readline("Enter command (or 'exit' to quit; 'help' for available modes): ");
@@ -648,6 +681,9 @@ Available modes:
     consider books
     reset (return to mode select)
                         "##)
+                    },
+                    "clear" => {
+                        rl.clear_screen()?;
                     },
                     "reset" => {
                         mode.clear();
@@ -727,16 +763,39 @@ Available modes:
         }
     }
 
+   maybe_save_history_file(&mut rl, &history_path)?;
+
+    Ok(())
+}
+
+fn maybe_save_history_file(rl: &mut Editor<(), DefaultHistory>, history_path: &PathBuf) -> anyhow::Result<()> {
     cfg_if::cfg_if! {
         if #[cfg(feature = "with-sqlite-history")]{
             // Save the command history
-            rl.save_history("history.sqlite")?;
+            rl.save_history(history_path)?;
         }
         else if #[cfg(feature = "with-file-history")] {
             // Save the command history
-            rl.save_history("history.txt")?;
+            rl.save_history(&history_path)?;
         } else {
             error!("History not saved because neither 'with-sqlite-history' nor 'with-file-history' features are enabled");
+        }
+    }
+    Ok(())
+}
+
+fn maybe_init_history_file(rl: &mut Editor<(), DefaultHistory>, history_path: &PathBuf) -> anyhow::Result<()> {
+    cfg_if::cfg_if! {
+        if #[cfg(feature = "with-sqlite-history")] {
+             if rl.load_history(&history_path).is_err() {
+                info!("No previous history.");
+            }
+        } else if #[cfg(feature = "with-file-history")] {
+            if rl.load_history(&history_path).is_err() {
+                info!("No previous history.");
+            }
+        } else {
+            error!("History not loaded because neither 'with-sqlite-history' nor 'with-file-history' features are enabled");
         }
     }
 
