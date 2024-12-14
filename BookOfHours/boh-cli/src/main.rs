@@ -48,7 +48,7 @@ enum QueryType {
     #[strum(serialize = "contamination aspects")]
     ContaminationAspects,
     #[strum(serialize = "consider books")]
-    ConsiderBooks
+    ConsiderBooks,
 }
 
 /// Read and parse the configuration using the `confy` crate
@@ -67,10 +67,7 @@ fn read_config() -> anyhow::Result<PathBuf> {
 
     // Load the configuration using confy
     let config: Config = confy::load(APP_PATH_FULL, Some("app_config"))?;
-    trace!(
-            ?config,
-            "Loaded config using confy"
-        );
+    trace!(?config, "Loaded config using confy");
 
     // Ensure the path exists and is valid
     if config.bhcontent_path.is_empty() {
@@ -91,15 +88,15 @@ fn get_history_file_path(config_path: &PathBuf) -> anyhow::Result<PathBuf> {
     // e.g. `evanjs/weatherfactory` (Linux), `evanjs\\weatherfactory` (Windows)
     let config_path_normalized = config_path.canonicalize()?;
 
-    let history_dir = config_path_normalized.parent().inspect(|&p|{
-        info!(
-            directory =? p,
-            "Determined application config directory"
-        );
-    }).ok_or_else(|| {
-        anyhow::anyhow!("Failed to determine configuration directory.")
-    })?;
-
+    let history_dir = config_path_normalized
+        .parent()
+        .inspect(|&p| {
+            info!(
+                directory =? p,
+                "Determined application config directory"
+            );
+        })
+        .ok_or_else(|| anyhow::anyhow!("Failed to determine configuration directory."))?;
 
     // Determine the platform and decide history file name
     let history_file = if cfg!(feature = "with-sqlite-history") {
@@ -112,10 +109,7 @@ fn get_history_file_path(config_path: &PathBuf) -> anyhow::Result<PathBuf> {
         ));
     };
 
-    info!(
-        ?history_file,
-        "Determined history file path"
-    );
+    info!(?history_file, "Determined history file path");
 
     Ok(history_file)
 }
@@ -195,28 +189,33 @@ fn get_queries(mode: &str, query: &str) -> anyhow::Result<Queries> {
 /// # Examples
 ///
 /// ```
-/// 
+///
 /// ```
 #[tracing::instrument(skip(game_documents, wrapper))]
-fn execute_query<W>(game_documents: Arc<GameDocuments>, wrapper: W, query: &str, query_type: QueryType, verbose_output: bool) -> anyhow::Result<()>
+fn execute_query<W>(
+    game_documents: Arc<GameDocuments>,
+    wrapper: W,
+    query: &str,
+    query_type: QueryType,
+    verbose_output: bool,
+) -> anyhow::Result<()>
 where
     W: FindById + GameCollectionType + From<Value>,
     <W as FindById>::Item: Identifiable + GameElementDetails + Debug + Clone + Serialize,
-    <W as FindById>::Collection: AsRef<[<W as FindById>::Item]>
+    <W as FindById>::Collection: AsRef<[<W as FindById>::Item]>,
 {
     let results = wrapper
         .contains_id_case_insensitive(query)
-        .ok_or_else(|| anyhow::anyhow!("Failed to find item using the provided query")).cloned()
+        .ok_or_else(|| anyhow::anyhow!("Failed to find item using the provided query"))
+        .cloned()
         .into_iter()
         .collect::<Vec<_>>()
         .first()
         .cloned()
-        .ok_or(anyhow!("No result found for query: {query}"))
-        ?;
+        .ok_or(anyhow!("No result found for query: {query}"))?;
 
     copy_and_print(game_documents, results, query_type, verbose_output)
 }
-
 
 /// Read the contents of the designated file
 ///
@@ -287,22 +286,17 @@ fn copy_and_print<U>(
     game_documents: Arc<GameDocuments>,
     serializable_value: U,
     query_type: QueryType,
-    verbose_output: bool
+    verbose_output: bool,
 ) -> anyhow::Result<()>
 where
-    U: Serialize + GameElementDetails
+    U: Serialize + GameElementDetails,
 {
     let game_docs = game_documents.clone();
 
     let label = serializable_value.get_label();
     let description = serializable_value.get_desc();
 
-    debug!(
-        ?label,
-        ?description,
-        ?query_type,
-        "Found object to print"
-    );
+    debug!(?label, ?description, ?query_type, "Found object to print");
     let ctx = ClipboardContext::new().expect("Failed to get clipboard context");
 
     // Copy tab-separated values to clipboard for pasting into Excel
@@ -315,18 +309,22 @@ where
 
     // print each extra item
     if !serializable_value.get_extra().is_empty() {
-        for (extra_key, extra_value) in serializable_value.get_extra().iter().filter(|(k,v)|{
-            k.contains("mastering")
-        }) {
+        for (extra_key, extra_value) in serializable_value
+            .get_extra()
+            .iter()
+            .filter(|(k, v)| k.contains("mastering"))
+        {
             let lesson_id = game_docs
                 .lessons
                 .get_lesson_string(extra_value)
                 .unwrap_or_else(|| panic!("Failed to get lesson using ID: {extra_key}"));
             println!("{}", lesson_id);
         }
-        for (aspected_item_key, aspected_item_value) in serializable_value.get_extra().iter().filter(|(k,v)|{
-            k.contains("reading")
-        }) {
+        for (aspected_item_key, aspected_item_value) in serializable_value
+            .get_extra()
+            .iter()
+            .filter(|(k, v)| k.contains("reading"))
+        {
             let memory_id = game_docs
                 .aspected_items
                 .get_memory_string(aspected_item_value)
@@ -337,16 +335,17 @@ where
                 .aspected_items
                 .get_aspects(aspected_item_value)
                 .unwrap_or_else(|| panic!("Failed to get aspect using ID: {aspected_item_key}"))
-                .iter().for_each(|(aspect_name, aspect_amount)| {
-                debug!(
-                    ?aspected_item_key,
-                    ?aspected_item_value,
-                    ?aspect_name,
-                    ?aspect_amount,
-                    "Found aspect to print"
-                );
-                println!("{aspect_name}: {aspect_amount}");
-            })
+                .iter()
+                .for_each(|(aspect_name, aspect_amount)| {
+                    debug!(
+                        ?aspected_item_key,
+                        ?aspected_item_value,
+                        ?aspect_name,
+                        ?aspect_amount,
+                        "Found aspect to print"
+                    );
+                    println!("{aspect_name}: {aspect_amount}");
+                })
         }
     } else {
         println!("No extra items for {label}");
@@ -387,8 +386,7 @@ fn process_mode(
     verbose_output: bool,
     query_type: QueryType,
     shared_game_documents: Arc<GameDocuments>,
-) -> anyhow::Result<()>
-{
+) -> anyhow::Result<()> {
     let queries = match get_queries(mode, query) {
         Ok(q) => q,
         Err(error) => {
@@ -409,20 +407,41 @@ fn process_mode(
         QueryType::Tomes => {
             trace!(?query_type, "Attempting to get tomes from query");
             let val = game_documents.tomes.clone();
-            execute_query::<Tomes>(shared_game_documents.clone(), val, queries.name_query.as_str(), query_type.clone(), verbose_output)
+            execute_query::<Tomes>(
+                shared_game_documents.clone(),
+                val,
+                queries.name_query.as_str(),
+                query_type.clone(),
+                verbose_output,
+            )
         }
         QueryType::Skills => {
             trace!(?query_type, "Attempting to get skills from query");
             let val = game_documents.skills.clone();
-            execute_query::<Skills>(shared_game_documents.clone(), val, queries.name_query.as_str(), query_type.clone(), verbose_output)
+            execute_query::<Skills>(
+                shared_game_documents.clone(),
+                val,
+                queries.name_query.as_str(),
+                query_type.clone(),
+                verbose_output,
+            )
         }
         QueryType::Aspects => {
             trace!(?query_type, "Attempting to get aspects from query");
             let val = game_documents.aspects.clone();
-            execute_query::<Aspects>(shared_game_documents.clone(), val, queries.name_query.as_str(), query_type.clone(), verbose_output)
+            execute_query::<Aspects>(
+                shared_game_documents.clone(),
+                val,
+                queries.name_query.as_str(),
+                query_type.clone(),
+                verbose_output,
+            )
         }
         QueryType::ContaminationAspects => {
-            trace!(?query_type, "Attempting to get contamination aspects from query");
+            trace!(
+                ?query_type,
+                "Attempting to get contamination aspects from query"
+            );
             // let val = game_documents.contamination_aspects.clone();
             // copy_and_print(val, include_object_query)?;
             bail!("Unhandled game document type for game data from json handler")
@@ -430,14 +449,26 @@ fn process_mode(
         QueryType::AspectedItems => {
             trace!(?query_type, "Attempting to get aspected items from query");
             let val = game_documents.aspected_items.clone();
-            execute_query::<AspectedItems>(shared_game_documents.clone(), val, queries.name_query.as_str(), query_type.clone(), verbose_output)
+            execute_query::<AspectedItems>(
+                shared_game_documents.clone(),
+                val,
+                queries.name_query.as_str(),
+                query_type.clone(),
+                verbose_output,
+            )
         }
         QueryType::ConsiderBooks => {
             trace!(?query_type, "Attempting to get consider books from query");
             let val = game_documents.consider_books.clone();
-            execute_query::<ConsiderBooks>(shared_game_documents.clone(), val, queries.name_query.as_str(), query_type.clone(), verbose_output)
+            execute_query::<ConsiderBooks>(
+                shared_game_documents.clone(),
+                val,
+                queries.name_query.as_str(),
+                query_type.clone(),
+                verbose_output,
+            )
         }
-        _ => bail!("Unhandled game document type for game data from json handler")
+        _ => bail!("Unhandled game document type for game data from json handler"),
     }
 }
 
@@ -470,7 +501,8 @@ fn main() -> anyhow::Result<()> {
     };
 
     let bhcontent_core_path = read_config()?;
-    let app_config_file_path = confy::get_configuration_file_path(APP_PATH_FULL, Some(APP_CONFIG_FILE_NAME))?;
+    let app_config_file_path =
+        confy::get_configuration_file_path(APP_PATH_FULL, Some(APP_CONFIG_FILE_NAME))?;
     let game_documents_arc = init_json_data(&bhcontent_core_path)?;
 
     // Create a rustyline Editor instance
@@ -482,10 +514,11 @@ fn main() -> anyhow::Result<()> {
 
     let history_path = get_history_file_path(&app_config_file_path)?;
 
-   maybe_init_history_file(&mut rl, &history_path)?;
+    maybe_init_history_file(&mut rl, &history_path)?;
 
     'repl: loop {
-        let readline = rl.readline("Enter command (or 'exit' to quit; 'help' for available modes): ");
+        let readline =
+            rl.readline("Enter command (or 'exit' to quit; 'help' for available modes): ");
         match readline {
             Ok(line) => {
                 rl.add_history_entry(line.as_str())?;
@@ -494,7 +527,8 @@ fn main() -> anyhow::Result<()> {
                 match input {
                     "exit" => break 'repl,
                     "help" => {
-                        println!(r##"
+                        println!(
+                            r##"
 Available modes:
     skills
     aspects
@@ -503,11 +537,12 @@ Available modes:
     aspected items
     consider books
     reset (return to mode select)
-                        "##)
-                    },
+                        "##
+                        )
+                    }
                     "clear" => {
                         rl.clear_screen()?;
-                    },
+                    }
                     "reset" => {
                         mode.clear();
                         println!("Mode reset. Please select a new mode.");
@@ -523,7 +558,7 @@ Available modes:
                                 "contamination aspects",
                                 "tomes",
                                 "aspected items",
-                                "consider books"
+                                "consider books",
                             ]
                             .contains(&mode.as_str())
                             {
@@ -564,7 +599,7 @@ Available modes:
                                         continue;
                                     }
                                 },
-                                game_documents_arc.clone()
+                                game_documents_arc.clone(),
                             ) {
                                 Ok(_) => info!("Command processed: {}", query),
                                 Err(error) => {
@@ -586,12 +621,15 @@ Available modes:
         }
     }
 
-   maybe_save_history_file(&mut rl, &history_path)?;
+    maybe_save_history_file(&mut rl, &history_path)?;
 
     Ok(())
 }
 
-fn maybe_save_history_file(rl: &mut Editor<(), DefaultHistory>, history_path: &PathBuf) -> anyhow::Result<()> {
+fn maybe_save_history_file(
+    rl: &mut Editor<(), DefaultHistory>,
+    history_path: &PathBuf,
+) -> anyhow::Result<()> {
     cfg_if::cfg_if! {
         if #[cfg(feature = "with-sqlite-history")]{
             // Save the command history
@@ -607,7 +645,10 @@ fn maybe_save_history_file(rl: &mut Editor<(), DefaultHistory>, history_path: &P
     Ok(())
 }
 
-fn maybe_init_history_file(rl: &mut Editor<(), DefaultHistory>, history_path: &PathBuf) -> anyhow::Result<()> {
+fn maybe_init_history_file(
+    rl: &mut Editor<(), DefaultHistory>,
+    history_path: &PathBuf,
+) -> anyhow::Result<()> {
     cfg_if::cfg_if! {
         if #[cfg(feature = "with-sqlite-history")] {
              if rl.load_history(&history_path).is_err() {
@@ -632,8 +673,7 @@ struct GameDocuments {
     tomes: Tomes,
     consider_books: ConsiderBooks,
     skills: Skills,
-    lessons: Lessons
-    //contamination_aspects: dyn GameCollection<QueryType::ContaminationAspects>,
+    lessons: Lessons, //contamination_aspects: dyn GameCollection<QueryType::ContaminationAspects>,
 }
 
 impl GameDocuments {
@@ -652,7 +692,7 @@ impl GameDocuments {
     /// # Examples
     ///
     /// ```
-    /// 
+    ///
     /// ```
     fn new(
         aspects: Aspects,
@@ -660,8 +700,7 @@ impl GameDocuments {
         tomes: Tomes,
         consider_books: ConsiderBooks,
         skills: Skills,
-        lessons: Lessons
-        //contamination_aspects: Aspects
+        lessons: Lessons, //contamination_aspects: Aspects
     ) -> Self {
         GameDocuments {
             aspects,
@@ -669,7 +708,7 @@ impl GameDocuments {
             tomes,
             consider_books,
             skills,
-            lessons
+            lessons,
         }
     }
 
@@ -689,23 +728,23 @@ impl GameDocuments {
     /// let game_documents = GameDocuments::new_using_path(path)?;
     /// ```
     fn new_using_data_path(path: &PathBuf) -> anyhow::Result<Self> {
-        let tomes_path = path.join("elements").join( "tomes.json");
+        let tomes_path = path.join("elements").join("tomes.json");
         let tomes_data = deserialize_json_with_arbitrary_encoding(&tomes_path)?;
         let tomes = tomes_data.into();
 
-        let aspected_items_path = path.join("elements").join( "aspecteditems.json");
+        let aspected_items_path = path.join("elements").join("aspecteditems.json");
         let aspected_items_data = deserialize_json_with_arbitrary_encoding(&aspected_items_path)?;
 
         // let contamination_aspects_path = path.join("elements").join( "contamination_aspects.json");
         //let contamination_aspects_data = deserialize_json_with_arbitrary_encoding(&contamination_aspects_path)?;
 
-        let skills_path = path.join("elements").join( "skills.json");
+        let skills_path = path.join("elements").join("skills.json");
         let skills_data = deserialize_json_with_arbitrary_encoding(&skills_path)?;
 
-        let aspects_path = path.join("elements").join( "_aspects.json");
+        let aspects_path = path.join("elements").join("_aspects.json");
         let aspects_data = deserialize_json_with_arbitrary_encoding(&aspects_path)?;
 
-        let consider_books_path = path.join("recipes").join( "1_consider_books.json");
+        let consider_books_path = path.join("recipes").join("1_consider_books.json");
         let consider_books_data = deserialize_json_with_arbitrary_encoding(&consider_books_path)?;
 
         let lessons_path = path.join("elements").join("xlessons.json");
@@ -723,7 +762,6 @@ impl GameDocuments {
         Ok(game_documents)
     }
 }
-
 
 /// Read the contents of the specified JSON file and clean resulting data to ensure
 /// the JSON data can be successfully deserialized
@@ -748,10 +786,7 @@ impl GameDocuments {
 /// let json_file_data = deserialize_json_with_arbitrary_encoding(json_file_path)?;
 /// ```
 fn deserialize_json_with_arbitrary_encoding(file_path: &PathBuf) -> anyhow::Result<Value> {
-    debug!(
-        ?file_path,
-        "Attempting to read file"
-    );
+    debug!(?file_path, "Attempting to read file");
     let file_contents = read_file_content(&file_path.to_string_lossy())?;
     let sanitized_file_content = file_contents.replace("\r\n", "\n");
     let json_value: Value = match serde_json::from_str(&sanitized_file_content) {
@@ -783,10 +818,7 @@ fn deserialize_json_with_arbitrary_encoding(file_path: &PathBuf) -> anyhow::Resu
 /// let base_directory_path: &PathBuf = "path_to_core_directory".into();
 /// let shared_game_documents = init_json_data(base_directory_path)?;
 /// ```
-fn init_json_data(base_directory: &PathBuf) -> anyhow::Result<Arc<GameDocuments>>
-{
-    let game = GameDocuments::new_using_data_path(
-        base_directory
-    )?;
+fn init_json_data(base_directory: &PathBuf) -> anyhow::Result<Arc<GameDocuments>> {
+    let game = GameDocuments::new_using_data_path(base_directory)?;
     Ok(Arc::new(game))
 }

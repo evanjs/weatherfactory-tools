@@ -1,8 +1,8 @@
 use crate::model::{FindById, GameCollectionType, GameElementDetails, Identifiable};
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use serde_json::Value;
 use crate::QueryType;
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct Skills {
@@ -140,7 +140,9 @@ impl From<Value> for Skills {
 }
 
 impl GameCollectionType for Skills {
-    fn get_collection_type(&self) -> QueryType { QueryType::Skills }
+    fn get_collection_type(&self) -> QueryType {
+        QueryType::Skills
+    }
 }
 
 impl GameElementDetails for Element {

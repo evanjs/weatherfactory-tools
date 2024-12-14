@@ -1,8 +1,8 @@
 use crate::model::{FindById, GameCollectionType, GameElementDetails, Identifiable};
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use serde_json::Value;
 use crate::QueryType;
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct Aspects {
@@ -52,17 +52,11 @@ impl Identifiable for Element {
     ///   - One of the ID variants might not be available in all cases
     fn id(&self) -> &str {
         match (&self.id, &self.element_id) {
-            (a, None) => {
-                a.as_ref().unwrap()
-            },
-            (None, b) => {
-                b.as_ref().unwrap()
-            }
+            (a, None) => a.as_ref().unwrap(),
+            (None, b) => b.as_ref().unwrap(),
             // Is this valid?
             // Will/do any items have both id _and_ ID?
-            (a, b) => {
-                b.as_ref().unwrap()
-            }
+            (a, b) => b.as_ref().unwrap(),
         }
     }
 }
@@ -83,7 +77,9 @@ impl From<Value> for Aspects {
 }
 
 impl GameCollectionType for Aspects {
-    fn get_collection_type(&self) -> QueryType { QueryType::Aspects }
+    fn get_collection_type(&self) -> QueryType {
+        QueryType::Aspects
+    }
 }
 
 impl GameElementDetails for Element {

@@ -1,15 +1,15 @@
+use crate::QueryType;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use tracing::{debug, trace, warn};
-use crate::QueryType;
 
+pub(crate) mod aspected_items;
 pub(crate) mod aspects;
+pub(crate) mod config;
+pub(crate) mod consider_books;
+pub(crate) mod lessons;
 pub(crate) mod skills;
 pub(crate) mod tomes;
-pub(crate) mod aspected_items;
-pub(crate) mod consider_books;
-pub(crate) mod config;
-pub(crate) mod lessons;
 
 // Define a shared trait for elements that have an ID field
 pub trait Identifiable {
@@ -27,8 +27,6 @@ pub trait GameElementDetails {
         HashMap::new()
     }
 }
-
-
 
 // Define a trait for collections that can find elements by ID
 pub trait FindById {
@@ -141,5 +139,4 @@ pub trait FindById {
                 None
             })
     }
-
 }

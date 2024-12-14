@@ -1,10 +1,10 @@
 use crate::model::{FindById, GameCollectionType, GameElementDetails, Identifiable};
+use crate::QueryType;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use serde_with::skip_serializing_none;
 use std::collections::HashMap;
-use serde_json::Value;
 use tracing::{debug, info, warn};
-use crate::QueryType;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct Tomes {
@@ -173,7 +173,9 @@ impl From<Value> for Tomes {
 }
 
 impl GameCollectionType for Tomes {
-    fn get_collection_type(&self) -> QueryType { QueryType::Tomes }
+    fn get_collection_type(&self) -> QueryType {
+        QueryType::Tomes
+    }
 }
 
 impl GameElementDetails for Element {
@@ -197,8 +199,10 @@ impl GameElementDetails for Element {
             Some(s) => {
                 let m = s.clone();
 
-                let (mk, mv) = m.clone().iter()
-                    .filter(|(k,v)|{
+                let (mk, mv) = m
+                    .clone()
+                    .iter()
+                    .filter(|(k, v)| {
                         info!(
                             key =? k,
                             value =? v,
@@ -206,16 +210,17 @@ impl GameElementDetails for Element {
                         );
                         k.starts_with("mastering")
                     })
-                    .map(|(k, v)| {
-                        (k.clone(), v.first().unwrap().id.clone().unwrap())
-                    }).collect::<Vec<_>>()
+                    .map(|(k, v)| (k.clone(), v.first().unwrap().id.clone().unwrap()))
+                    .collect::<Vec<_>>()
                     .first()
                     .unwrap()
                     .clone();
 
                 map.insert(mk, mv);
 
-                let (rk, rv) = m.clone().into_iter()
+                let (rk, rv) = m
+                    .clone()
+                    .into_iter()
                     .filter(|(k, v)| {
                         debug!(
                             key =? k,
@@ -224,19 +229,15 @@ impl GameElementDetails for Element {
                         );
                         k.starts_with("reading")
                     })
-                    .map(|(k, v)| {
-                        (k.clone(), v.first().unwrap().id.clone().unwrap())
-                    }).collect::<Vec<_>>()
+                    .map(|(k, v)| (k.clone(), v.first().unwrap().id.clone().unwrap()))
+                    .collect::<Vec<_>>()
                     .first()
                     .unwrap()
                     .clone();
 
                 map.insert(rk, rv);
 
-                info!(
-                    ?map,
-                    "Produced extra map"
-                );
+                info!(?map, "Produced extra map");
                 map
             }
         }

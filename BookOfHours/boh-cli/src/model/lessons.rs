@@ -1,8 +1,8 @@
-use serde::{Serialize, Deserialize};
-use std::collections::HashMap;
-use serde_json::Value;
-use tracing::{info, warn};
 use crate::model::Identifiable;
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use std::collections::HashMap;
+use tracing::{info, warn};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Lessons {
@@ -25,23 +25,24 @@ pub enum Inherits {
     MemoryPersistent,
 }
 
-
 impl Lessons {
     #[tracing::instrument(skip(self))]
     pub(crate) fn get_lesson_string(&self, id: &str) -> Option<String> {
         if let Some(elements) = &self.elements {
-            Some(elements.iter().find(|&f| {
-                info!(
-                    existing_id =? &f.id,
-                    queried_id =? id,
-                    "Checking if query matches ID"
-                );
-                f.id.as_str() == id
-            })
-                .map(|e| e.label.clone())
-                .unwrap_or_else(|| {
-                    format!("No lesson found for id {}", id)
-                }))
+            Some(
+                elements
+                    .iter()
+                    .find(|&f| {
+                        info!(
+                            existing_id =? &f.id,
+                            queried_id =? id,
+                            "Checking if query matches ID"
+                        );
+                        f.id.as_str() == id
+                    })
+                    .map(|e| e.label.clone())
+                    .unwrap_or_else(|| format!("No lesson found for id {}", id)),
+            )
         } else {
             warn!("No lessons found for ID: {id}");
             None

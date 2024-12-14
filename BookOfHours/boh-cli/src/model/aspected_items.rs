@@ -1,9 +1,9 @@
-use serde::{Serialize, Deserialize};
-use std::collections::HashMap;
-use serde_json::Value;
-use tracing::{info, warn};
 use crate::model::{FindById, GameCollectionType, GameElementDetails, Identifiable};
 use crate::QueryType;
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use std::collections::HashMap;
+use tracing::{info, warn};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct AspectedItems {
@@ -88,7 +88,9 @@ impl From<Value> for AspectedItems {
 }
 
 impl GameCollectionType for AspectedItems {
-    fn get_collection_type(&self) -> QueryType { QueryType::AspectedItems }
+    fn get_collection_type(&self) -> QueryType {
+        QueryType::AspectedItems
+    }
 }
 
 impl GameElementDetails for Element {
@@ -105,23 +107,28 @@ impl GameElementDetails for Element {
 impl AspectedItems {
     #[tracing::instrument(skip(self))]
     pub(crate) fn get_memory_string(&self, id: &str) -> Option<String> {
-        self.elements.iter().find(|&f| {
-            info!(
-                existing_id =? &f.id,
-                queried_id =? id,
-                "Checking if query matches ID"
-            );
-            f.id.as_str() == id
-        })
+        self.elements
+            .iter()
+            .find(|&f| {
+                info!(
+                    existing_id =? &f.id,
+                    queried_id =? id,
+                    "Checking if query matches ID"
+                );
+                f.id.as_str() == id
+            })
             .map(|e| e.label.clone())
     }
 
     pub(crate) fn get_aspects(&self, id: &str) -> Option<HashMap<String, String>> {
-        self.elements.iter().find(|&f| f.id.as_str() == id)
+        self.elements
+            .iter()
+            .find(|&f| f.id.as_str() == id)
             .and_then(|element| {
                 element.aspects.as_ref().map(|aspects| {
-                    aspects.iter()
-                        .filter(|(key, value)|!key.contains("boost"))
+                    aspects
+                        .iter()
+                        .filter(|(key, value)| !key.contains("boost"))
                         .map(|(key, value)| (key.clone(), value.to_string()))
                         .collect()
                 })

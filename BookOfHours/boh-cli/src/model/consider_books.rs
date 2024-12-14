@@ -1,9 +1,9 @@
-use serde::{Serialize, Deserialize};
-use std::collections::HashMap;
-use serde_json::Value;
-use serde_with::skip_serializing_none;
 use crate::model::{FindById, GameCollectionType, GameElementDetails, Identifiable};
 use crate::QueryType;
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use serde_with::skip_serializing_none;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct ConsiderBooks {
@@ -372,11 +372,12 @@ impl From<Value> for ConsiderBooks {
 }
 
 impl GameCollectionType for ConsiderBooks {
-    fn get_collection_type(&self) -> QueryType { QueryType::ConsiderBooks }
+    fn get_collection_type(&self) -> QueryType {
+        QueryType::ConsiderBooks
+    }
 }
 
 impl GameElementDetails for Element {
-
     fn get_label(&self) -> String {
         let a = self.clone().label;
         let b = a.unwrap_or_default();
