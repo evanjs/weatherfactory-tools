@@ -796,13 +796,11 @@ impl GameDocuments {
 fn deserialize_json_with_arbitrary_encoding(file_path: &PathBuf) -> anyhow::Result<Value> {
     debug!(?file_path, "Attempting to read file");
     let file_contents = read_file_content(&file_path.to_string_lossy())?;
-    let sanitized_file_content = file_contents.replace("\r\n", "\n");
-    let json_value: Value = match serde_json::from_str(&sanitized_file_content) {
+    let json_value: Value = match serde_json_lenient::from_str_lenient(&file_contents) {
         Ok(json_value) => json_value,
         Err(error) => {
             error!(
                 ?error,
-                ?sanitized_file_content,
                 ?file_path,
                 "Failed to deserialize JSON"
             );
