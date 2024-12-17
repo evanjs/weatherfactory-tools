@@ -89,16 +89,24 @@ fn get_autosave_file() -> anyhow::Result<PathBuf> {
     Ok(config.join("AUTOSAVE.json"))
 }
 
+#[tracing::instrument]
 fn get_local_low_directory() -> anyhow::Result<PathBuf> {
-    #[cfg(target_os = "windows")]
-    {
-        let directory = dirs::data_local_dir()
-            .unwrap_or(bail!("Failed to retrieve local data directory"))
-            .parent()
-            .unwrap_or(bail!("Failed to retrieve AppData directory"))
-            .join("LocalLow");
+    cfg_if::cfg_if! {
+        if #[cfg(target_os = "windows")] {
+            let local_data_dir = dirs::data_dir()
+                .inspect(|dir| debug!(?dir, "Retrieved local data directory"))
+                .expect("Failed to retrieve local data directory");
 
-        return Ok(directory)
+            let parent_dir = local_data_dir
+                .parent()
+                .inspect(|parent| debug!(?parent, "Retrieved AppData parent directory"))
+                .expect("Failed to retrieve AppData directory");
+
+            let directory = parent_dir.join("LocalLow");
+            info!(?directory, "Constructed LocalLow directory path");
+
+            return Ok(directory);
+        }
     }
 
     bail!("Unsupported platform: Cannot determine local low directory");
@@ -620,7 +628,7 @@ fn main() -> anyhow::Result<()> {
 
     match logging::init_tracing_subscriber(filter) {
         Ok(_) => {
-            println!("Successfully configured logging using provided filter");
+            debug!("Successfully configured logging using provided filter");
         }
         Err(error) => {
             eprintln!(

@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use crate::get_autosave_file;
 use crate::model::aspected_items::AspectedItems;
 use crate::model::aspects::Aspects;
 use crate::model::consider_books::ConsiderBooks;
@@ -97,11 +98,7 @@ impl GameDocuments {
         let lessons_path = path.join("elements").join("xlessons.json");
         let lessons_data = crate::deserialize_json_with_arbitrary_encoding(&lessons_path)?;
 
-        // TODO: test on copy of save file to be sure
-        // let autosave = get_autosave_file()?;
-        let current_exe = std::env::current_exe()?;
-        let current_exe_directory = current_exe.parent().unwrap();
-        let autosave_path = current_exe_directory.join("AUTOSAVE.json");
+        let autosave_path = get_autosave_file()?;
         let autosave_data = crate::load_autosave(autosave_path)?;
 
 

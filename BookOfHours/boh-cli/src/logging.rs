@@ -11,6 +11,7 @@ pub(crate) fn get_env_filter() -> EnvFilter {
 }
 
 pub(crate) fn init_tracing_subscriber(env_filter: EnvFilter) -> Result<(), TryInitError> {
+    #[cfg(debug_assertions)]
     let subscriber = tracing_subscriber::Registry::default().with(
         tracing_subscriber::fmt::layer()
             .pretty()
@@ -20,5 +21,16 @@ pub(crate) fn init_tracing_subscriber(env_filter: EnvFilter) -> Result<(), TryIn
             .with_file(true)
             .with_filter(env_filter),
     );
+
+    #[cfg(not(debug_assertions))]
+    let subscriber = tracing_subscriber::Registry::default().with(
+        tracing_subscriber::fmt::layer()
+            .with_target(false)
+            .with_thread_names(false)
+            .with_line_number(false)
+            .with_file(false)
+            .with_filter(env_filter),
+    );
+
     subscriber.try_init()
 }

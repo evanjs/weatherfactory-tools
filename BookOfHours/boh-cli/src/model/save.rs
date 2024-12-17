@@ -214,12 +214,13 @@ pub enum AtriumType {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Effect {
+    Autumn,
     Day,
-    Morning,
+    Fog,
+    Midday,
     None,
     Open,
     Setspeed,
-    Summer,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -496,6 +497,7 @@ pub struct PurpleRequired {
     pub(crate) circumstance: Option<i64>,
     pub(crate) scale: Option<i64>,
     pub(crate) knock: Option<i64>,
+    pub(crate) edge: Option<i64>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -712,6 +714,7 @@ pub enum FluffyLabel {
     AbandonedAtTheThreshold,
     #[serde(rename = "ABANDONED AT THE WATER'S EDGE")]
     AbandonedAtTheWaterSEdge,
+    Assistance,
     #[serde(rename = "BOOKSHELF")]
     Bookshelf,
     #[serde(rename = "COMFORT")]
@@ -795,8 +798,6 @@ pub struct FluffyRequired {
     pub(crate) visitor: Option<i64>,
     pub(crate) employable: Option<i64>,
     pub(crate) assistance: Option<i64>,
-    #[serde(rename = "cost.tally")]
-    pub(crate) cost_tally: Option<i64>,
     #[serde(rename = "visitor.embarking")]
     pub(crate) visitor_embarking: Option<i64>,
     pub(crate) journal: Option<i64>,
@@ -819,6 +820,9 @@ pub struct FluffyRequired {
     #[serde(rename = "w.nyctodromy")]
     pub(crate) w_nyctodromy: Option<i64>,
     pub(crate) memory: Option<i64>,
+    pub(crate) tally: Option<i64>,
+    #[serde(rename = "skill.language")]
+    pub(crate) skill_language: Option<i64>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -843,7 +847,9 @@ pub struct TentacledPayload {
     pub(crate) id: Option<String>,
     pub(crate) verb_id: Option<String>,
     pub(crate) output_path: Option<serde_json::Value>,
+    // TODO: this might need to be a string
     pub(crate) current_recipe_id: Option<Id>,
+    // TODO: this might also need to be a string
     pub(crate) fallback_recipe_id: Option<Id>,
     pub(crate) quantity: Option<i64>,
     pub(crate) state_identifier: Option<i64>,
@@ -862,12 +868,20 @@ pub struct TentacledPayload {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Id {
-    #[serde(rename = "craft.scholar.inks.containment_flower_liquid.solomon_winter")]
-    CraftScholarInksContainmentFlowerLiquidSolomonWinter,
-    #[serde(rename = "craft.scholar.rhyme.remembrance_remains_essential.periost_winter")]
-    CraftScholarRhymeRemembranceRemainsEssentialPeriostWinter,
+    #[serde(rename = "craft.preliminalmeter_confounding.parable_rose")]
+    CraftPreliminalmeterConfoundingParableRose,
+    #[serde(rename = "craft.scholar.sacralimiae_memory_riddle.nameday_moth")]
+    CraftScholarSacralimiaeMemoryRiddleNamedayMoth,
+    #[serde(rename = "craft.stitching.binding_perhibiate_heart")]
+    CraftStitchingBindingPerhibiateHeart,
+    #[serde(rename = "gather.moor.autumn")]
+    GatherMoorAutumn,
     #[serde(rename = "NullRecipe")]
     NullRecipe,
+    #[serde(rename = "salon.hint.raw")]
+    SalonHintRaw,
+    #[serde(rename = "study.mystery.sky.mastered")]
+    StudyMysterySkyMastered,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -965,10 +979,9 @@ pub struct TentacledRequired {
     pub(crate) ability: Option<i64>,
     pub(crate) soaked: Option<i64>,
     pub(crate) soiled: Option<i64>,
-    pub(crate) scale: Option<i64>,
-    pub(crate) rose: Option<i64>,
     pub(crate) thing: Option<i64>,
     pub(crate) beast: Option<i64>,
+    pub(crate) rose: Option<i64>,
     pub(crate) moon: Option<i64>,
     #[serde(rename = "interest.heart")]
     pub(crate) interest_heart: Option<i64>,
@@ -980,6 +993,7 @@ pub struct TentacledRequired {
     pub(crate) lens: Option<i64>,
     pub(crate) memory: Option<i64>,
     pub(crate) nectar: Option<i64>,
+    pub(crate) scale: Option<i64>,
     #[serde(rename = "interest.winter")]
     pub(crate) interest_winter: Option<i64>,
     #[serde(rename = "visitor.villager")]
@@ -987,14 +1001,18 @@ pub struct TentacledRequired {
     pub(crate) visitor: Option<i64>,
     #[serde(rename = "appointment.persistent")]
     pub(crate) appointment_persistent: Option<i64>,
+    pub(crate) remains: Option<i64>,
+    pub(crate) material: Option<i64>,
+    pub(crate) carcass: Option<i64>,
     pub(crate) film: Option<i64>,
     pub(crate) moth: Option<i64>,
-    pub(crate) remains: Option<i64>,
-    pub(crate) flower: Option<i64>,
-    pub(crate) liquid: Option<i64>,
-    pub(crate) fuel: Option<i64>,
     #[serde(rename = "interest.moth")]
     pub(crate) interest_moth: Option<i64>,
+    pub(crate) flower: Option<i64>,
+    pub(crate) root: Option<i64>,
+    pub(crate) leaf: Option<i64>,
+    pub(crate) fuel: Option<i64>,
+    pub(crate) liquid: Option<i64>,
     pub(crate) light: Option<i64>,
     #[serde(rename = "interest.grail")]
     pub(crate) interest_grail: Option<i64>,
@@ -1013,8 +1031,6 @@ pub struct TentacledRequired {
     pub(crate) fabric: Option<i64>,
     pub(crate) sustenance: Option<i64>,
     pub(crate) ingredient: Option<i64>,
-    pub(crate) root: Option<i64>,
-    pub(crate) leaf: Option<i64>,
     pub(crate) knife: Option<i64>,
     pub(crate) kitchenware: Option<i64>,
     pub(crate) stone: Option<i64>,
@@ -1040,7 +1056,6 @@ pub struct TentacledRequired {
     #[serde(rename = "interest.moon")]
     pub(crate) interest_moon: Option<i64>,
     pub(crate) key: Option<i64>,
-    pub(crate) material: Option<i64>,
     #[serde(rename = "hidden.mihail.sarcophagus")]
     pub(crate) hidden_mihail_sarcophagus: Option<i64>,
     pub(crate) hokobald: Option<i64>,
@@ -1090,7 +1105,7 @@ pub struct StickyPayload {
     #[serde(rename = "$type")]
     pub(crate) payload_type: Option<PayloadType>,
     pub(crate) id: Option<String>,
-    pub(crate) entity_id: Option<EntityId>,
+    pub(crate) entity_id: Option<String>,
     pub(crate) quantity: Option<i64>,
     pub(crate) mutations: Option<PurpleMutations>,
     pub(crate) illuminations: Option<Illuminations>,
@@ -1098,25 +1113,6 @@ pub struct StickyPayload {
     pub(crate) is_shrouded: Option<bool>,
     pub(crate) lifetime_remaining: Option<f64>,
     pub(crate) dominions: Option<Vec<Option<serde_json::Value>>>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum EntityId {
-    #[serde(rename = "lenten.rose")]
-    LentenRose,
-    #[serde(rename = "s.inks.containment")]
-    SInksContainment,
-    #[serde(rename = "s.rhyme.remembrance")]
-    SRhymeRemembrance,
-    #[serde(rename = "scrapings.phosphorescent")]
-    ScrapingsPhosphorescent,
-    #[serde(rename = "tlg.note")]
-    TlgNote,
-    #[serde(rename = "wormwood.dream")]
-    WormwoodDream,
-    Xsha,
-    Xwis3,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -1135,17 +1131,18 @@ pub struct Illuminations {
 pub struct PurpleMutations {
     #[serde(rename = "$type")]
     pub(crate) mutations_type: Option<String>,
+    pub(crate) sky: Option<i64>,
+    pub(crate) heart: Option<i64>,
+    pub(crate) skill: Option<i64>,
+    #[serde(rename = "mastery.sky")]
+    pub(crate) mastery_sky: Option<i64>,
+    pub(crate) knock: Option<i64>,
+    pub(crate) rose: Option<i64>,
     #[serde(rename = "wisdom.committed")]
     pub(crate) wisdom_committed: Option<i64>,
-    #[serde(rename = "w.skolekosophy")]
-    pub(crate) w_skolekosophy: Option<i64>,
-    pub(crate) winter: Option<i64>,
-    pub(crate) moon: Option<i64>,
-    pub(crate) skill: Option<i64>,
-    #[serde(rename = "a.xhea")]
-    pub(crate) a_xhea: Option<i64>,
-    #[serde(rename = "w.horomachistry")]
-    pub(crate) w_horomachistry: Option<i64>,
+    #[serde(rename = "w.ithastry")]
+    pub(crate) w_ithastry: Option<i64>,
+    pub(crate) moth: Option<i64>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -1176,16 +1173,20 @@ pub struct FluffyMutations {
     pub(crate) mastery_grail: Option<i64>,
     #[serde(rename = "mastery.lantern")]
     pub(crate) mastery_lantern: Option<i64>,
-    #[serde(rename = "mastery.sky")]
-    pub(crate) mastery_sky: Option<i64>,
     #[serde(rename = "mastery.nectar")]
     pub(crate) mastery_nectar: Option<i64>,
+    #[serde(rename = "mastery.sky")]
+    pub(crate) mastery_sky: Option<i64>,
     #[serde(rename = "mastery.scale")]
     pub(crate) mastery_scale: Option<i64>,
     #[serde(rename = "tx.fraser")]
     pub(crate) tx_fraser: Option<i64>,
+    #[serde(rename = "tx.aladim")]
+    pub(crate) tx_aladim: Option<i64>,
     #[serde(rename = "tx.azita")]
     pub(crate) tx_azita: Option<i64>,
+    #[serde(rename = "tx.chaima")]
+    pub(crate) tx_chaima: Option<i64>,
     #[serde(rename = "mystery.grail")]
     pub(crate) mystery_grail: Option<i64>,
     pub(crate) soph: Option<i64>,
@@ -1194,8 +1195,6 @@ pub struct FluffyMutations {
     pub(crate) knock: Option<i64>,
     #[serde(rename = "mastery.winter")]
     pub(crate) mastery_winter: Option<i64>,
-    #[serde(rename = "tx.chaima")]
-    pub(crate) tx_chaima: Option<i64>,
     #[serde(rename = "mastery.rose")]
     pub(crate) mastery_rose: Option<i64>,
     #[serde(rename = "tx.franklin")]
@@ -1210,8 +1209,6 @@ pub struct FluffyMutations {
     pub(crate) tx_serena: Option<i64>,
     #[serde(rename = "tx.douglas")]
     pub(crate) tx_douglas: Option<i64>,
-    #[serde(rename = "tx.aladim")]
-    pub(crate) tx_aladim: Option<i64>,
     #[serde(rename = "tx.yvette")]
     pub(crate) tx_yvette: Option<i64>,
     #[serde(rename = "tx.zachary")]
@@ -1238,6 +1235,8 @@ pub struct FluffyMutations {
     pub(crate) address_azita: Option<i64>,
     #[serde(rename = "address.arthur")]
     pub(crate) address_arthur: Option<i64>,
+    #[serde(rename = "address.aladim")]
+    pub(crate) address_aladim: Option<i64>,
     #[serde(rename = "acted.arthur.revolution.edge")]
     pub(crate) acted_arthur_revolution_edge: Option<i64>,
     #[serde(rename = "acted.fraser.project.solar.lantern")]
@@ -1610,55 +1609,55 @@ pub struct TentacledMutations {
     pub(crate) finished: Option<i64>,
     #[serde(rename = "wisdom.committed")]
     pub(crate) wisdom_committed: Option<i64>,
-    #[serde(rename = "w.bosk")]
-    pub(crate) w_bosk: Option<i64>,
-    #[serde(rename = "a.xhausted")]
-    pub(crate) a_xhausted: Option<i64>,
-    pub(crate) scale: Option<i64>,
-    pub(crate) nectar: Option<i64>,
-    pub(crate) skill: Option<i64>,
-    pub(crate) sky: Option<i64>,
-    pub(crate) rose: Option<i64>,
-    #[serde(rename = "a.xfet")]
-    pub(crate) a_xfet: Option<i64>,
-    #[serde(rename = "w.birdsong")]
-    pub(crate) w_birdsong: Option<i64>,
-    pub(crate) moon: Option<i64>,
-    pub(crate) heart: Option<i64>,
-    #[serde(rename = "w.hushery")]
-    pub(crate) w_hushery: Option<i64>,
-    pub(crate) winter: Option<i64>,
-    #[serde(rename = "w.ithastry")]
-    pub(crate) w_ithastry: Option<i64>,
-    pub(crate) lantern: Option<i64>,
-    #[serde(rename = "w.illumination")]
-    pub(crate) w_illumination: Option<i64>,
-    pub(crate) knock: Option<i64>,
-    pub(crate) forge: Option<i64>,
-    #[serde(rename = "a.xcho")]
-    pub(crate) a_xcho: Option<i64>,
-    #[serde(rename = "a.xhea")]
-    pub(crate) a_xhea: Option<i64>,
-    #[serde(rename = "w.nyctodromy")]
-    pub(crate) w_nyctodromy: Option<i64>,
     #[serde(rename = "a.xere")]
     pub(crate) a_xere: Option<i64>,
     #[serde(rename = "w.skolekosophy")]
     pub(crate) w_skolekosophy: Option<i64>,
-    pub(crate) edge: Option<i64>,
+    pub(crate) scale: Option<i64>,
+    pub(crate) knock: Option<i64>,
+    pub(crate) skill: Option<i64>,
+    #[serde(rename = "w.birdsong")]
+    pub(crate) w_birdsong: Option<i64>,
+    pub(crate) moon: Option<i64>,
     pub(crate) grail: Option<i64>,
-    #[serde(rename = "w.preservation")]
-    pub(crate) w_preservation: Option<i64>,
-    #[serde(rename = "a.xtri")]
-    pub(crate) a_xtri: Option<i64>,
+    pub(crate) edge: Option<i64>,
+    pub(crate) lantern: Option<i64>,
+    pub(crate) sky: Option<i64>,
+    pub(crate) forge: Option<i64>,
+    pub(crate) heart: Option<i64>,
     #[serde(rename = "w.horomachistry")]
     pub(crate) w_horomachistry: Option<i64>,
-    #[serde(rename = "a.xsha")]
-    pub(crate) a_xsha: Option<i64>,
-    #[serde(rename = "a.xpho")]
-    pub(crate) a_xpho: Option<i64>,
+    #[serde(rename = "a.xhausted")]
+    pub(crate) a_xhausted: Option<i64>,
+    #[serde(rename = "w.illumination")]
+    pub(crate) w_illumination: Option<i64>,
+    #[serde(rename = "w.nyctodromy")]
+    pub(crate) w_nyctodromy: Option<i64>,
+    #[serde(rename = "w.hushery")]
+    pub(crate) w_hushery: Option<i64>,
+    pub(crate) winter: Option<i64>,
+    pub(crate) rose: Option<i64>,
     #[serde(rename = "a.xmet")]
     pub(crate) a_xmet: Option<i64>,
+    pub(crate) nectar: Option<i64>,
+    #[serde(rename = "a.xsha")]
+    pub(crate) a_xsha: Option<i64>,
+    #[serde(rename = "w.preservation")]
+    pub(crate) w_preservation: Option<i64>,
+    #[serde(rename = "a.xhea")]
+    pub(crate) a_xhea: Option<i64>,
+    #[serde(rename = "a.xfet")]
+    pub(crate) a_xfet: Option<i64>,
+    #[serde(rename = "a.xcho")]
+    pub(crate) a_xcho: Option<i64>,
+    #[serde(rename = "a.xpho")]
+    pub(crate) a_xpho: Option<i64>,
+    #[serde(rename = "a.xtri")]
+    pub(crate) a_xtri: Option<i64>,
+    #[serde(rename = "w.bosk")]
+    pub(crate) w_bosk: Option<i64>,
+    #[serde(rename = "w.ithastry")]
+    pub(crate) w_ithastry: Option<i64>,
     #[serde(rename = "acted.julian.numa.moon.b.moon")]
     pub(crate) acted_julian_numa_moon_b_moon: Option<i64>,
     #[serde(rename = "acted.franklin.numa.grail.b.grail")]
@@ -1685,4 +1684,8 @@ pub struct TentacledMutations {
     pub(crate) acted_azita_hunt_changing_edge: Option<i64>,
     #[serde(rename = "acted.arthur.hunt.changing.edge")]
     pub(crate) acted_arthur_hunt_changing_edge: Option<i64>,
+    #[serde(rename = "acted.chaima.hunt.changing.edge")]
+    pub(crate) acted_chaima_hunt_changing_edge: Option<i64>,
+    #[serde(rename = "acted.aladim.hunt.changing.scale")]
+    pub(crate) acted_aladim_hunt_changing_scale: Option<i64>,
 }
