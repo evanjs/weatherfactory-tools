@@ -403,12 +403,11 @@ where
     let description = serializable_value.get_desc();
 
     debug!(?label, ?description, ?query_type, "Found object to print");
-    let ctx = ClipboardContext::new().expect("Failed to get clipboard context");
 
     // Copy tab-separated values to clipboard for pasting into Excel
     let combined = format!("{}\t{}", label, description);
-    ctx.set_text(combined.clone())
-        .expect("Failed to set clipboard contents");
+
+    copy_if_clipboard_found(combined);
 
     let has_been_manifested = game_docs.check_if_item_manifested(&serializable_value)?;
     println!("Already manifested? {}", has_been_manifested);
@@ -499,6 +498,20 @@ where
     }
 
     Ok(())
+}
+
+fn copy_if_clipboard_found(text_to_copy: String) {
+    match ClipboardContext::new() {
+        Ok(clipboard_context) => {
+            clipboard_context
+                .set_text(text_to_copy.clone())
+                .expect("Failed to set clipboard contents");
+        }
+        Err(error) => {
+            debug!(?error, "Failed to get clipboard context");
+        }
+    }
+
 }
 
 //noinspection ALL,RsUnreachablePatterns
