@@ -124,6 +124,7 @@ fn get_game_save_directory() -> anyhow::Result<PathBuf> {
     #[cfg(target_os = "linux")]
     {
         directory = dirs::data_local_dir()
+            .expect("Failed to get local data directory")
             .join("Weather Factory")
             .join("Book of Hours");
     }
@@ -131,6 +132,7 @@ fn get_game_save_directory() -> anyhow::Result<PathBuf> {
     #[cfg(target_os = "macos")]
     {
         directory = dirs::data_local_dir()
+            .expect("Failed to get local data directory")
             .join("Weather Factory")
             .join("Book of Hours");
     }
