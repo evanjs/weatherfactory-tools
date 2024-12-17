@@ -72,11 +72,6 @@ impl Autosave {
                                                                             .to_ascii_lowercase()
                                                                             .as_str())
                                                                     {
-
-                                                                        let clip = ClipboardContext::new().unwrap();
-                                                                        let serd = serde_json::to_string(dpayload)?;
-                                                                        clip.set_text(serd).unwrap();
-
                                                                         // Return the matching innermost payload
                                                                         return Ok(dpayload.clone());
                                                                     }
