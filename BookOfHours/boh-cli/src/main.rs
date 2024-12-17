@@ -123,8 +123,9 @@ fn get_game_save_directory() -> anyhow::Result<PathBuf> {
 
     #[cfg(target_os = "linux")]
     {
-        directory = dirs::data_local_dir()
-            .expect("Failed to get local data directory")
+        directory = dirs::config_dir()
+            .expect("Failed to get config directory")
+            .join("unity3d")
             .join("Weather Factory")
             .join("Book of Hours");
     }
