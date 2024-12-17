@@ -352,6 +352,7 @@ impl Identifiable for Element {
     fn id(&self) -> &str {
         &self.id
     }
+    fn inner_id(&self) -> &str { &self.id }
 }
 
 impl FindById for ConsiderBooks {

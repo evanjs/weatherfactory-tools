@@ -59,6 +59,16 @@ impl Identifiable for Element {
             (a, b) => b.as_ref().unwrap(),
         }
     }
+
+    fn inner_id(&self) -> &str {
+        match (&self.id, &self.element_id) {
+            (a, None) => a.as_ref().unwrap(),
+            (None, b) => b.as_ref().unwrap(),
+            // Is this valid?
+            // Will/do any items have both id _and_ ID?
+            (a, b) => b.as_ref().unwrap(),
+        }
+    }
 }
 
 impl FindById for Aspects {

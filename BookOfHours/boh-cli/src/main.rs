@@ -1,8 +1,11 @@
 mod logging;
 
 mod model;
+mod utils;
 
+use std::collections::HashMap;
 use std::fmt::Debug;
+use std::io::{BufRead, BufReader};
 use tracing::{debug, error, info, trace, warn};
 
 use encoding_rs::{UTF_16LE, UTF_8};
@@ -16,6 +19,7 @@ use crate::model::aspects::Aspects;
 use crate::model::config::Config;
 use crate::model::consider_books::ConsiderBooks;
 use crate::model::lessons::Lessons;
+use crate::model::save::{Autosave, Path};
 use crate::model::skills::Skills;
 use crate::model::tomes::Tomes;
 use crate::model::{FindById, GameCollectionType, GameElementDetails, Identifiable};
@@ -25,6 +29,8 @@ use rustyline::history::DefaultHistory;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use strum_macros::EnumString;
+use model::game_documents::GameDocuments;
+use utils::save;
 
 static APP_PATH_FULL: &str = "evanjs/weatherfactory-tools/book-of-hours_cli";
 static APP_CONFIG_FILE_NAME: &str = "app_config";
@@ -49,6 +55,89 @@ enum QueryType {
     ContaminationAspects,
     #[strum(serialize = "consider books")]
     ConsiderBooks,
+}
+
+
+/// Read the game's configuration file
+/// 
+/// returns: Result<HashMap<String, String, RandomState>, Error> 
+/// 
+/// # Examples 
+/// 
+/// ```
+/// 
+/// ```
+fn read_game_config() -> anyhow::Result<HashMap<String, String>> {
+    let file_path = get_config_file_path()
+        .unwrap_or(bail!("Failed to retrieve configuration file path"));
+    let file = std::fs::File::open(file_path)?;
+    let reader = BufReader::new(file);
+    let mut config = HashMap::new();
+
+    for line in reader.lines() {
+        let line = line?;
+        if let Some((key, value)) = line.split_once('=') {
+            config.insert(key.trim().to_string(), value.trim().to_string());
+        }
+    }
+
+    Ok(config)
+}
+
+fn get_autosave_file() -> anyhow::Result<PathBuf> {
+    let config = get_game_save_directory()?;
+    Ok(config.join("AUTOSAVE.json"))
+}
+
+fn get_local_low_directory() -> anyhow::Result<PathBuf> {
+    #[cfg(target_os = "windows")]
+    {
+        let directory = dirs::data_local_dir()
+            .unwrap_or(bail!("Failed to retrieve local data directory"))
+            .parent()
+            .unwrap_or(bail!("Failed to retrieve AppData directory"))
+            .join("LocalLow");
+
+        return Ok(directory)
+    }
+
+    bail!("Unsupported platform: Cannot determine local low directory");
+}
+
+fn get_game_save_directory() -> anyhow::Result<PathBuf> {
+    let mut directory: PathBuf = PathBuf::new();
+    #[cfg(target_os = "windows")]
+    {
+        directory = get_local_low_directory()?
+            .join("Weather Factory")
+            .join("Book of Hours");
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        directory = dirs::data_local_dir()
+            .join("Weather Factory")
+            .join("Book of Hours");
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        directory = dirs::data_local_dir()
+            .join("Weather Factory")
+            .join("Book of Hours");
+    }
+
+    #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
+    {
+        bail!("Unsupported platform: Cannot determine game save directory");
+    }
+
+    Ok(directory)
+}
+
+fn get_config_file_path() -> anyhow::Result<PathBuf> {
+    let game_save_directory = get_game_save_directory()?;
+    Ok(game_save_directory.join(APP_CONFIG_FILE_NAME))
 }
 
 /// Read and parse the configuration using the `confy` crate
@@ -223,7 +312,7 @@ where
 /// The return type, regardless of the file encoding, will always be UTF-8
 /// # Arguments
 ///
-/// * `file_path`: the path to the file to read
+/// * `file_path`: the path to the file to read (can be any type that implements AsRef<Path>)
 ///
 /// returns: Result<String, Error>
 ///
@@ -289,7 +378,7 @@ fn copy_and_print<U>(
     verbose_output: bool,
 ) -> anyhow::Result<()>
 where
-    U: Serialize + GameElementDetails,
+    U: Serialize + GameElementDetails + Identifiable + Clone + Debug,
 {
     let game_docs = game_documents.clone();
 
@@ -304,8 +393,27 @@ where
     ctx.set_text(combined.clone())
         .expect("Failed to set clipboard contents");
 
-    // Print "label: description"
-    println!("{}: {}", label, description);
+    let has_been_manifested = game_docs.check_if_item_manifested(&serializable_value)?;
+    println!("Already manifested? {}", has_been_manifested);
+
+    let item_from_save_file = game_docs.get_item_from_save_file(&serializable_value)?;
+    info!(
+        ?item_from_save_file,
+        "Found item from save file"
+    );
+
+    if !has_been_manifested {
+        // Print "label: description"
+        error!(
+            ?label,
+            "Item has not yet been manifested"
+        );
+        bail!("Not printing details for element not yet manifested!");
+    } else {
+        // Print "label: description"
+        println!("{}: {}", label, description);
+    }
+
 
     // print each extra item
     if !serializable_value.get_extra().is_empty() {
@@ -505,6 +613,8 @@ fn main() -> anyhow::Result<()> {
         confy::get_configuration_file_path(APP_PATH_FULL, Some(APP_CONFIG_FILE_NAME))?;
     let game_documents_arc = init_json_data(&bhcontent_core_path)?;
 
+    //let unique_items = save::get_unique_items(&game_documents_arc.autosave)?;
+
     // Create a rustyline Editor instance
     let mut rl = DefaultEditor::new()?;
     let mut mode = String::new();
@@ -634,6 +744,19 @@ Available modes:
     Ok(())
 }
 
+#[tracing::instrument]
+fn load_autosave(autosave_path: PathBuf) -> anyhow::Result<Autosave> {
+    let autosave_path_str = autosave_path.to_str().expect("Failed to convert path to string");
+    debug!(
+        ?autosave_path_str,
+        "Attempting to read autosave file"
+    );
+    let autosave_contents = read_file_content(autosave_path_str)?;
+    let autosave: Autosave = serde_json::from_str(&autosave_contents)?;
+
+    Ok(autosave)
+}
+
 fn maybe_save_history_file(
     rl: &mut Editor<(), DefaultHistory>,
     history_path: &PathBuf,
@@ -672,103 +795,6 @@ fn maybe_init_history_file(
     }
 
     Ok(())
-}
-
-#[derive(Clone)]
-struct GameDocuments {
-    aspects: Aspects,
-    aspected_items: AspectedItems,
-    tomes: Tomes,
-    consider_books: ConsiderBooks,
-    skills: Skills,
-    lessons: Lessons, //contamination_aspects: dyn GameCollection<QueryType::ContaminationAspects>,
-}
-
-impl GameDocuments {
-    /// Constructs a new instance of the GameDocuments struct
-    ///
-    /// # Arguments
-    ///
-    /// * `aspects`: Aspects (e.g. "Knock")
-    /// * `aspected_items`: Aspected Items (e.g. "Librarian's Glasses")
-    /// * `tomes`: Tomes (e.g. "Exorcism for Girls")
-    /// * `consider_books`:Consider Books (e.g. "I'm reading" and "I've read")
-    /// * `skills`: Skills (e.g. "Inks of Power")
-    ///
-    /// returns: GameDocuments
-    ///
-    /// # Examples
-    ///
-    /// ```
-    ///
-    /// ```
-    fn new(
-        aspects: Aspects,
-        aspected_items: AspectedItems,
-        tomes: Tomes,
-        consider_books: ConsiderBooks,
-        skills: Skills,
-        lessons: Lessons, //contamination_aspects: Aspects
-    ) -> Self {
-        GameDocuments {
-            aspects,
-            aspected_items,
-            tomes,
-            consider_books,
-            skills,
-            lessons,
-        }
-    }
-
-    /// Using the provided game data directory path, parse and load game documents for use
-    /// by the main application
-    ///
-    /// # Arguments
-    ///
-    /// * `path`: the path to the `core` directory of the exported game data
-    ///
-    /// returns: Result<GameDocuments, Error>
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let path: &PathBuf = "path_to_core_directory".into();
-    /// let game_documents = GameDocuments::new_using_path(path)?;
-    /// ```
-    fn new_using_data_path(path: &PathBuf) -> anyhow::Result<Self> {
-        let tomes_path = path.join("elements").join("tomes.json");
-        let tomes_data = deserialize_json_with_arbitrary_encoding(&tomes_path)?;
-        let tomes = tomes_data.into();
-
-        let aspected_items_path = path.join("elements").join("aspecteditems.json");
-        let aspected_items_data = deserialize_json_with_arbitrary_encoding(&aspected_items_path)?;
-
-        // let contamination_aspects_path = path.join("elements").join( "contamination_aspects.json");
-        //let contamination_aspects_data = deserialize_json_with_arbitrary_encoding(&contamination_aspects_path)?;
-
-        let skills_path = path.join("elements").join("skills.json");
-        let skills_data = deserialize_json_with_arbitrary_encoding(&skills_path)?;
-
-        let aspects_path = path.join("elements").join("_aspects.json");
-        let aspects_data = deserialize_json_with_arbitrary_encoding(&aspects_path)?;
-
-        let consider_books_path = path.join("recipes").join("1_consider_books.json");
-        let consider_books_data = deserialize_json_with_arbitrary_encoding(&consider_books_path)?;
-
-        let lessons_path = path.join("elements").join("xlessons.json");
-        let lessons_data = deserialize_json_with_arbitrary_encoding(&lessons_path)?;
-
-        let game_documents = GameDocuments::new(
-            aspects_data.into(),
-            aspected_items_data.into(),
-            tomes,
-            consider_books_data.into(),
-            skills_data.into(),
-            lessons_data.into(),
-            //contamination_aspects_data.into()
-        );
-        Ok(game_documents)
-    }
 }
 
 /// Read the contents of the specified JSON file and clean resulting data to ensure
