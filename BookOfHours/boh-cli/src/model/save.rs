@@ -838,7 +838,7 @@ pub struct TentacledToken {
 #[serde(rename_all = "PascalCase")]
 pub struct TentacledPayload {
     #[serde(rename = "$type")]
-    pub(crate) payload_type: Option<PayloadType>,
+    pub(crate) payload_type: PayloadType,
     pub(crate) last_situation_created: Option<serde_json::Value>,
     pub(crate) id: Option<String>,
     pub(crate) verb_id: Option<String>,

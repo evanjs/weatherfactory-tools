@@ -4,7 +4,7 @@ use anyhow::Ok;
 use clipboard_rs::{Clipboard, ClipboardContext};
 use tracing::{debug, error, trace, warn};
 use crate::model::Identifiable;
-use crate::model::save::{Autosave, PayloadType, RootPopulationCommandSphere};
+use crate::model::save::{Autosave, PayloadType, RootPopulationCommandSphere, TentacledPayload};
 
 impl Autosave {
 
@@ -29,7 +29,7 @@ impl Autosave {
     pub(crate) fn get_item_from_save_file<T>(
         &self,
         game_item: &T,
-    ) -> anyhow::Result<RootPopulationCommandSphere>
+    ) -> anyhow::Result<TentacledPayload>
     where
         T: Identifiable + Debug,
     {
@@ -44,87 +44,68 @@ impl Autosave {
             "Getting item from save file"
         );
 
-        let clip = ClipboardContext::new().unwrap();
-        let serd = serde_json::to_string(&self)?;
-        clip.set_text(serd).unwrap();
-
-        if let Some(root_population_command) = self.root_population_command.as_ref().clone() {
+        if let Some(root_population_command) = self.root_population_command.as_ref() {
             if let Some(spheres) = &root_population_command.spheres {
-                let a = spheres.iter().find(|sphere| {
-                    let sphere_spec = sphere.governing_sphere_spec.as_ref().unwrap();
-                    let sphere_id = sphere_spec.id.as_ref().unwrap();
-                    debug!(
-                        sphere_name =? sphere_id,
-                        game_item_id =? game_item.inner_id(),
-                        "Checking if sphere contains item"
-                    );
+                // Find the sphere containing the item
+                for sphere in spheres {
                     if let Some(tokens) = &sphere.tokens {
-                        tokens.iter().find(|token| {
+                        for token in tokens {
                             if let Some(payload) = &token.payload {
-                                trace!(
-                                    payload_id =? payload.id,
-                                    game_item_id =? game_item.inner_id(),
-                                    "Checking payload type"
-                                );
-                                if payload.payload_type == PayloadType::ElementStackCreationCommand {
-                                    if let Some(payload_id) = &payload.id {
-                                        trace!(
-                                            ?payload_id,
-                                            game_item_id =? game_item.inner_id(),
-                                            "Checking if id contains game_item ID"
-                                        );
-                                        payload_id.to_ascii_lowercase().contains(game_item.inner_id().to_ascii_lowercase().as_str())
-                                        // game_item.inner_id().eq(entity_id)
-                                    } else {
-                                        // anyhow!(Err("Failed to find entity_id in payload"))
-                                        error!(
-                                            id =? payload.clone().id.unwrap_or_default(),
-                                            sphere_name =? sphere_id,
-                                            "Failed to find id in payload"
-                                        );
-                                        false
+                                if let Some(dominions) = &payload.dominions {
+                                    for dominion in dominions {
+                                        if let Some(dspheres) = &dominion.spheres {
+                                            for dsphere in dspheres {
+                                                for dtokens in &dsphere.tokens {
+                                                    for dtoken in dtokens {
+                                                        if let Some(dpayload) = dtoken.payload.as_ref() {
+                                                            if dpayload.payload_type == PayloadType::ElementStackCreationCommand {
+                                                                if let Some(dpayload_id) = &dpayload.id {
+                                                                    debug!(
+                                                                        payload_id =? dpayload_id,
+                                                                        game_item_id =? game_item.inner_id(),
+                                                                        "Checking if payload contains item"
+                                                                    );
+                                                                    if dpayload_id
+                                                                        .to_ascii_lowercase()
+                                                                        .contains(game_item
+                                                                            .inner_id()
+                                                                            .to_ascii_lowercase()
+                                                                            .as_str())
+                                                                    {
+
+                                                                        let clip = ClipboardContext::new().unwrap();
+                                                                        let serd = serde_json::to_string(dpayload)?;
+                                                                        clip.set_text(serd).unwrap();
+
+                                                                        // Return the matching innermost payload
+                                                                        return Ok(dpayload.clone());
+                                                                    }
+                                                                }
+                                                            } else {
+                                                                trace!(
+                                                                    dpayload =? dpayload.id,
+                                                                    "Payload type is not ElementStackCreationCommand"
+                                                                );
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
-                                } else {
-                                    // anyhow!(Err("Failed to find payload in token"))
-                                    // error!("Failed to find payload in token");
-                                    warn!(
-                                        payload_type =? payload.payload_type,
-                                        sphere_name =? sphere_id,
-                                        "Not processing token because payload is not ElementStackCreationCommand"
-                                    );
-                                    false
                                 }
-                            } else {
-                                warn!("Skipping token because payload is None");
-                                false
                             }
-                        }).is_some()
-                    } else {
-                        // anyhow!(Err("Failed to find tokens in sphere"))
-                        // bail!("Failed to find tokens in sphere")
-                        error!("Failed to find tokens in sphere");
-                        false
+                        }
                     }
-                });
-                let b = a.cloned();
-                match b {
-                    Some(sphere) => Ok(sphere),
-                    None => bail!("Failed to find sphere with item")
                 }
-                //.cloned().ok_or_else(|| bail!("Failed to find sphere with item"))
-            }  else {
-                 bail!("Failed to find spheres in root population command")
-                 // error!("Failed to find spheres in root population command");
-                 // None
+                bail!("Failed to find matching item in any sphere");
+            } else {
+                bail!("Failed to find spheres in root population command");
             }
         } else {
-            // anyhow!(Err("Failed to find root population command in save file"))
-            bail!("Failed to find root population command in save file")
-            // error!("Failed to find root population command in save file");
-            // None
+            bail!("Failed to find root population command in save file");
         }
     }
-
 
 
     pub(crate) fn get_unique_items(&self) -> anyhow::Result<Vec<String>> {

@@ -3,7 +3,7 @@ use crate::QueryType;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
-use tracing::{info, warn};
+use tracing::{info, trace, warn};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct AspectedItems {
@@ -109,7 +109,7 @@ impl AspectedItems {
         self.elements
             .iter()
             .find(|&f| {
-                info!(
+                trace!(
                     existing_id =? &f.id,
                     queried_id =? id,
                     "Checking if query matches ID"

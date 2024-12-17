@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_with::skip_serializing_none;
 use std::collections::HashMap;
-use tracing::{debug, info, warn};
+use tracing::{debug, info, trace, warn};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct Tomes {
@@ -204,7 +204,7 @@ impl GameElementDetails for Element {
                     .clone()
                     .iter()
                     .filter(|(k, v)| {
-                        info!(
+                        trace!(
                             key =? k,
                             value =? v,
                             "Checking if mastering ID starts with query"
@@ -238,7 +238,7 @@ impl GameElementDetails for Element {
 
                 map.insert(rk, rv);
 
-                info!(?map, "Produced extra map");
+                trace!(?map, "Produced extra map");
                 map
             }
         }
