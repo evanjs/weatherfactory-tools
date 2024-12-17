@@ -135,4 +135,11 @@ impl GameDocuments {
     {
         self.autosave.get_item_from_save_file(game_item)
     }
+
+    pub(crate) fn check_if_tome_mastered(
+        &self,
+        game_item: &TentacledPayload
+    ) -> bool {
+        game_item.has_mastery()
+    }
 }

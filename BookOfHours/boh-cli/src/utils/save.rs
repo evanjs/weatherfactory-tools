@@ -1,5 +1,5 @@
 use std::fmt::Debug;
-use anyhow::{anyhow, bail, Result};
+use anyhow::{anyhow, bail};
 use anyhow::Ok;
 use clipboard_rs::{Clipboard, ClipboardContext};
 use tracing::{debug, error, trace, warn};

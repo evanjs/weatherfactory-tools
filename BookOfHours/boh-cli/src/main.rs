@@ -41,7 +41,7 @@ struct Queries {
     query_type: QueryType,
 }
 
-#[derive(Debug, Serialize, Deserialize, EnumString, Clone)]
+#[derive(Debug, Serialize, Deserialize, EnumString, Clone, PartialEq, Eq)]
 enum QueryType {
     #[strum(serialize = "skills")]
     Skills,
@@ -303,7 +303,9 @@ where
         .cloned()
         .ok_or(anyhow!("No result found for query: {query}"))?;
 
-    copy_and_print(game_documents, results, query_type, verbose_output)
+    copy_and_print(game_documents, results, query_type, verbose_output)?;
+    print_separator();
+    Ok(())
 }
 
 /// Read the contents of the designated file
@@ -341,6 +343,10 @@ fn read_file_content(file_path: &str) -> anyhow::Result<String> {
         content.into_owned()
     };
     Ok(content)
+}
+
+fn print_separator() {
+    println!("----------------------------------------");
 }
 
 /// Print helpful data about a single in-game item (type: `Element`)
@@ -397,22 +403,38 @@ where
     println!("Already manifested? {}", has_been_manifested);
 
     let item_from_save_file = game_docs.get_item_from_save_file(&serializable_value)?;
-    info!(
+    let have_i_mastered_this = game_docs.check_if_tome_mastered(&item_from_save_file);
+    debug!(
         ?item_from_save_file,
         "Found item from save file"
     );
 
-    if !has_been_manifested {
-        // Print "label: description"
-        error!(
-            ?label,
-            "Item has not yet been manifested"
-        );
-        bail!("Not printing details for element not yet manifested!");
+    if query_type.eq(&QueryType::Tomes) {
+        // if querying tomes, check whether found item has been read (i.e. _mastered_)
+        if !have_i_mastered_this {
+            error!(
+                ?label,
+                "TOME HAS NOT YET BEEN READ"
+            );
+            bail!("Not printing details for unread tome!");
+        }
     } else {
-        // Print "label: description"
-        println!("{}: {}", label, description);
+        // check if item has been crafted
+
+        if !has_been_manifested {
+            // Print "label: description"
+            println!("{}: {}", label, description);
+        } else {
+            // Print "label: description"
+            error!(
+                ?label,
+                "Item has not yet been manifested"
+            );
+            bail!("Not printing details for element not yet manifested!");
+        }
     }
+
+
 
 
     // print each extra item
