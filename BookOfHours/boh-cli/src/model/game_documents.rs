@@ -116,14 +116,17 @@ impl GameDocuments {
         Ok(game_documents)
     }
 
-    pub(crate) fn check_if_item_manifested<T>(&self, game_item: &T) -> anyhow::Result<bool>
+    pub(crate) fn check_if_item_manifested<T>(
+        &self,
+        game_item: &T
+    ) -> anyhow::Result<bool>
     where
         T: Identifiable + Clone + std::fmt::Debug,
     {
         self.autosave.check_if_item_manifested(game_item)
     }
 
-    pub(crate) fn get_item_from_save_file<T>(
+    pub(crate) fn get_tome_from_save_file<T>(
         &self,
         game_item: &T,
     ) -> anyhow::Result<TentacledPayload>
@@ -143,7 +146,10 @@ impl GameDocuments {
         self.autosave.get_studying_item_from_save_file(game_item)
     }
 
-    pub(crate) fn check_if_tome_mastered<T>(&self, game_item: &T) -> bool
+    pub(crate) fn check_if_tome_mastered<T>(
+        &self,
+        game_item: &T
+    ) -> bool
     where
         T: Mastery + Clone + std::fmt::Debug,
     {

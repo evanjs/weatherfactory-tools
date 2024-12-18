@@ -47,7 +47,7 @@ impl Autosave {
                                     for dominion in dominions {
                                         if let Some(dspheres) = &dominion.spheres {
                                             for dsphere in dspheres {
-                                                for dtokens in &dsphere.tokens {
+                                                while let Some(dtokens) = &dsphere.tokens {
                                                     for dtoken in dtokens {
                                                         if let Some(dpayload) =
                                                             dtoken.payload.as_ref()
@@ -96,6 +96,22 @@ impl Autosave {
         }
     }
 
+    /// Determine whether the provided time is either mastered or currently being studied
+    /// These criteria appear a bit differently in the save file
+    ///
+    /// StickyPayloads are nested more than TentacledPayloads
+    ///
+    /// # Arguments
+    ///
+    /// * `game_item`: the tome to query in the save file
+    ///
+    /// returns: Either<Result<StickyPayload, Error>, Result<TentacledPayload, Error>>
+    ///
+    /// # Examples
+    ///
+    /// ```
+    ///
+    /// ```
     pub(crate) fn get_mastered_or_studying_item_from_save_file<T>(
         &self,
         game_item: &T,
@@ -140,7 +156,7 @@ impl Autosave {
                                     for dominion in dominions {
                                         if let Some(dspheres) = &dominion.spheres {
                                             for dsphere in dspheres {
-                                                for dtokens in &dsphere.tokens {
+                                                while let Some(dtokens) = &dsphere.tokens {
                                                     for dtoken in dtokens {
                                                         if let Some(dpayload) =
                                                             dtoken.payload.as_ref()
@@ -150,7 +166,7 @@ impl Autosave {
                                                                     for ddominion in ddominions {
                                                                         if let Some(ddspheres) = &ddominion.spheres {
                                                                             for ddsphere in ddspheres {
-                                                                                for ddtokens in &ddsphere.tokens {
+                                                                                while let Some(ddtokens) = &ddsphere.tokens {
                                                                                     for ddtoken in ddtokens {
                                                                                         if let Some(ddpayload) = ddtoken.payload.as_ref() {
                                                                                             if let Some(ddpayload_id) = &ddpayload.id {

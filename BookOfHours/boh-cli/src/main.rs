@@ -21,7 +21,7 @@ use crate::model::aspected_items::AspectedItems;
 use crate::model::aspects::Aspects;
 use crate::model::config::Config;
 use crate::model::consider_books::ConsiderBooks;
-use crate::model::save::{Autosave, TentacledPayload};
+use crate::model::save::Autosave;
 use crate::model::skills::Skills;
 use crate::model::tomes::Tomes;
 use crate::model::{FindById, GameCollectionType, GameElementDetails, Identifiable, Mastery};
@@ -72,7 +72,7 @@ enum QueryType {
 /// ```
 fn read_game_config() -> anyhow::Result<HashMap<String, String>> {
     let file_path =
-        get_config_file_path().unwrap_or(bail!("Failed to retrieve configuration file path"));
+        get_config_file_path()?;
     let file = std::fs::File::open(file_path)?;
     let reader = BufReader::new(file);
     let mut config = HashMap::new();
@@ -109,10 +109,10 @@ fn get_local_low_directory() -> anyhow::Result<PathBuf> {
             info!(?directory, "Constructed LocalLow directory path");
 
             return Ok(directory);
+        } else {
+            bail!("Unsupported platform: Cannot determine local low directory");
         }
     }
-
-    bail!("Unsupported platform: Cannot determine local low directory");
 }
 
 fn get_game_save_directory() -> anyhow::Result<PathBuf> {
@@ -143,6 +143,7 @@ fn get_game_save_directory() -> anyhow::Result<PathBuf> {
 
     #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
     {
+        #[allow(unreachable_code)]
         bail!("Unsupported platform: Cannot determine game save directory");
     }
 
@@ -498,73 +499,6 @@ where
     Ok(())
 }
 
-fn handle_sticky_payload<T>(
-    game_documents: Arc<RwLock<GameDocuments>>,
-    serializable_value: T,
-) -> anyhow::Result<()>
-where
-    T: Serialize + GameElementDetails + Identifiable + Clone + Debug,
-{
-    let am_i_studying_this = game_documents
-        .read()
-        .expect("Failed to get game documents")
-        .get_studying_item_from_save_file(&serializable_value);
-
-    if let Ok(o) = am_i_studying_this {
-        let is_mastered = game_documents
-            .read()
-            .expect("Failed to get game documents")
-            .check_if_tome_mastered(&o);
-        if is_mastered {
-            Ok(())
-        } else {
-            bail!("Not printing details for tome being studied!")
-        }
-    } else if let Err(e) = am_i_studying_this {
-        bail!("Failed to resolve query for known or studying item!");
-    } else {
-        bail!("What is happening");
-    }
-}
-
-fn check_if_tentacled_payload_mastered(
-    game_documents: Arc<RwLock<GameDocuments>>,
-    item_from_save_file: TentacledPayload,
-    query_type: QueryType,
-    label: &str,
-    description: &str,
-    has_been_manifested: bool,
-) -> anyhow::Result<()> {
-    let have_i_mastered_this = game_documents
-        .read()
-        .expect("Failed to get game documents")
-        .check_if_tome_mastered(&item_from_save_file);
-
-    debug!(?item_from_save_file, "Found item from save file");
-
-    if query_type.eq(&QueryType::Tomes) {
-        // if querying tomes, check whether found item has been read (i.e. _mastered_)
-        if !have_i_mastered_this {
-            error!(?label, "TOME HAS NOT YET BEEN READ");
-            bail!("Not printing details for unread tome!")
-        } else {
-            Ok(())
-        }
-    } else {
-        // check if item has been crafted
-
-        if !has_been_manifested {
-            // Print "label: description"
-            println!("{}: {}", label, description);
-            Ok(())
-        } else {
-            // Print "label: description"
-            error!(?label, "Item has not yet been manifested");
-            bail!("Not printing details for element not yet manifested!");
-        }
-    }
-}
-
 fn copy_if_clipboard_found(text_to_copy: String) {
     match ClipboardContext::new() {
         Ok(clipboard_context) => {
@@ -578,7 +512,6 @@ fn copy_if_clipboard_found(text_to_copy: String) {
     }
 }
 
-//noinspection ALL,RsUnreachablePatterns
 ///
 ///
 /// # Arguments
@@ -686,6 +619,7 @@ fn process_mode(
                 verbose_output,
             )
         }
+        #[allow(unreachable_patterns)]
         _ => bail!("Unhandled game document type for game data from json handler"),
     }
 }
@@ -721,10 +655,9 @@ fn main() -> anyhow::Result<()> {
     let bhcontent_core_path = read_config()?;
     let app_config_file_path =
         confy::get_configuration_file_path(APP_PATH_FULL, Some(APP_CONFIG_FILE_NAME))?;
+
     let game_documents_arc = init_json_data(&bhcontent_core_path)?;
 
-    // Use the receiver in your loop:
-    let gda = Arc::clone(&game_documents_arc);
     // Create a crossbeam channel for communicating autosave events
     let (tx, rx): (
         crossbeam_channel::Sender<notify::Result<Event>>,
