@@ -200,7 +200,7 @@ pub struct Atrium {
     #[serde(rename = "$type")]
     pub(crate) atrium_type: Option<AtriumType>,
     pub(crate) concern: Option<String>,
-    pub(crate) effect: Option<Effect>,
+    pub(crate) effect: Option<String>,
     pub(crate) parameter: Option<String>,
     pub(crate) get_full_fx: Option<String>,
 }
