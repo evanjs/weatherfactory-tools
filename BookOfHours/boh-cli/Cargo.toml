@@ -35,6 +35,5 @@ confy = "0.6.1"
 serde_json_lenient = "0.2.4"
 dirs = "5.0.1"
 notify = { version = "7.0.0", features = ["crossbeam-channel"] }
-tokio = { version = "1.42.0", features = ["macros", "rt-multi-thread", "time"] }
 crossbeam-channel = "0.5.13"
 signal-hook = "0.3.17"

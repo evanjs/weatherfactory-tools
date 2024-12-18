@@ -642,8 +642,7 @@ fn process_mode(
 }
 
 // Main function with rustyline integration
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
+fn main() -> anyhow::Result<()> {
     dotenvy::dotenv().map_err(|_e| {
         debug!(
             name: "startup",
