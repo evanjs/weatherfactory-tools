@@ -13,8 +13,9 @@ use rustyline::error::ReadlineError;
 use rustyline::{DefaultEditor, Editor};
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
-use notify::{recommended_watcher, Event, RecursiveMode, Watcher};
+use notify::{recommended_watcher, Event, EventKind, RecursiveMode, Watcher};
 
 use crate::model::aspected_items::AspectedItems;
 use crate::model::aspects::Aspects;
@@ -27,7 +28,8 @@ use crate::model::tomes::Tomes;
 use crate::model::{FindById, GameCollectionType, GameElementDetails, Identifiable};
 use anyhow::{anyhow, bail, Error};
 use clipboard_rs::{Clipboard, ClipboardContext};
-use crossbeam_channel::unbounded;
+use crossbeam_channel::{select, unbounded};
+use notify::event::ModifyKind;
 use notify::RecursiveMode::Recursive;
 use rustyline::history::DefaultHistory;
 use serde::{Deserialize, Serialize};
@@ -683,25 +685,55 @@ fn main() -> anyhow::Result<()> {
     let autosave_path = get_autosave_file()?;
     watcher.watch(std::path::Path::new(&autosave_path), RecursiveMode::NonRecursive)?;
 
-    // Spawn the autosave thread
+    let autosave_flag = Arc::new(AtomicBool::new(true)); // Shared flag to control thread lifecycle
     let autosave_handle = thread::spawn({
+        let autosave_flag = Arc::clone(&autosave_flag);
         let autosave_gd = Arc::clone(&game_documents_arc);
         move || {
-            for result in rx.iter() {
-                match result {
-                    Ok(event) => {
-                        println!("autosave file changed: {:?}", event);
-                        println!("Updating game documents");
-                        if let Err(error) = update_autosave_document(autosave_gd.clone()) {
-                            eprintln!("Error when updating autosave document: {:?}", error);
+            loop {
+                select! {
+                recv(rx) -> msg => {
+                    match msg {
+                        Ok(result) => match result {
+                            Ok(event) => {
+                                    match event.kind {
+                                        EventKind::Modify(m) => {
+                                            match m {
+                                                ModifyKind::Data(_data) => {
+                                                    info!(?event, "Autosave file changed");
+                                                    debug!("Updating game documents");
+                                                    if let Err(error) = update_autosave_document(autosave_gd.clone()) {
+                                                        warn!("Error when updating autosave document: {:?}", error);
+                                                    } else {
+                                                        println!("Autosave document updated successfully");
+                                                    }
+                                                }
+                                            _ => {}
+                                            }
+                                        },
+                                        _ => {}
+                                    }
+                            },
+                            Err(e) => {
+                                println!("autosave watch error: {:?}", e);
+                            }
+                        },
+                        Err(_) => {
+                            // Sender (tx) is closed, break loop
+                            println!("No more messages. Exiting autosave thread.");
+                            break;
                         }
                     }
-                    Err(e) => {
-                        println!("autosave watch error: {:?}", e);
+                }
+                default => {
+                    // Periodically check the shutdown flag
+                    if !autosave_flag.load(Ordering::SeqCst) {
+                        println!("Shutdown signal received. Exiting autosave thread.");
+                        break;
                     }
                 }
             }
-            println!("Autosave thread exiting.");
+            }
         }
     });
 
@@ -831,6 +863,7 @@ Available modes:
     }
 
     drop(tx);
+    autosave_flag.store(false, Ordering::SeqCst); // Signal the autosave thread to shut down
 
     // Wait for the autosave thread to exit
     autosave_handle
@@ -844,7 +877,7 @@ Available modes:
 
 fn update_autosave_document(game_documents: Arc<RwLock<GameDocuments>>) -> anyhow::Result<()> {
     let autosave_path = get_autosave_file()?;
-    let autosave_data = crate::load_autosave(autosave_path)?;
+    let autosave_data = load_autosave(autosave_path)?;
 
     game_documents.write().expect("Failed to get write lock for game documents").autosave = autosave_data;
     Ok(())
