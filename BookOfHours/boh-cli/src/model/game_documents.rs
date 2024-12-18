@@ -5,7 +5,7 @@ use crate::model::aspects::Aspects;
 use crate::model::consider_books::ConsiderBooks;
 use crate::model::Identifiable;
 use crate::model::lessons::Lessons;
-use crate::model::save::{Autosave, RootPopulationCommandSphere, TentacledPayload};
+use crate::model::save::{Autosave, RootPopulationCommandSphere, StickyPayload, TentacledPayload};
 use crate::model::skills::Skills;
 use crate::model::tomes::Tomes;
 
@@ -131,6 +131,15 @@ impl GameDocuments {
         T: Identifiable + Clone + std::fmt::Debug,
     {
         self.autosave.get_item_from_save_file(game_item)
+    }
+
+    pub(crate) fn get_studying_item_from_save_file<T>(
+        &self,
+        game_item: &T
+    ) -> anyhow::Result<StickyPayload> where
+        T: Identifiable + Clone + std::fmt::Debug,
+    {
+        self.autosave.get_studying_item_from_save_file(game_item)
     }
 
     pub(crate) fn check_if_tome_mastered(

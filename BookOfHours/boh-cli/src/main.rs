@@ -419,15 +419,32 @@ where
         .check_if_item_manifested(&serializable_value)?;
     println!("Already manifested? {}", has_been_manifested);
 
-    let item_from_save_file = game_documents
+    let item_from_save_file = match game_documents
         .read()
         .expect("Failed to get game documents")
-        .get_item_from_save_file(&serializable_value)?;
+        .get_item_from_save_file(&serializable_value) {
+        Ok(o) => {o}
+        Err(e) => {
+            let am_i_studying_this = game_documents
+                .read()
+                .expect("Failed to get game documents")
+                .get_studying_item_from_save_file(&serializable_value);
+
+            if am_i_studying_this.is_ok() {
+                error!(error =? e, "Not printing data for tome being studied!");
+                bail!("Not printing details for tome being studied!");
+            } else {
+                bail!("Failed to resolve query for known or studying item!");
+            }
+        }
+    };
 
     let have_i_mastered_this = game_documents
         .read()
         .expect("Failed to get game documents")
         .check_if_tome_mastered(&item_from_save_file);
+
+
     debug!(
         ?item_from_save_file,
         "Found item from save file"

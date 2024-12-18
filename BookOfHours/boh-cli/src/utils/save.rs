@@ -4,7 +4,7 @@ use anyhow::Ok;
 use clipboard_rs::{Clipboard, ClipboardContext};
 use tracing::{debug, error, trace, warn};
 use crate::model::Identifiable;
-use crate::model::save::{Autosave, PayloadType, RootPopulationCommandSphere, TentacledPayload};
+use crate::model::save::{Autosave, PayloadType, RootPopulationCommandSphere, StickyPayload, TentacledPayload};
 
 impl Autosave {
 
@@ -74,6 +74,97 @@ impl Autosave {
                                                                     {
                                                                         // Return the matching innermost payload
                                                                         return Ok(dpayload.clone());
+                                                                    }
+                                                                }
+                                                            } else {
+                                                                trace!(
+                                                                    dpayload =? dpayload.id,
+                                                                    "Payload type is not ElementStackCreationCommand"
+                                                                );
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                bail!("Failed to find matching item in any sphere");
+            } else {
+                bail!("Failed to find spheres in root population command");
+            }
+        } else {
+            bail!("Failed to find root population command in save file");
+        }
+    }
+
+    #[tracing::instrument(skip(self, game_item))]
+    pub(crate) fn get_studying_item_from_save_file<T>(
+        &self,
+        game_item: &T,
+    ) -> anyhow::Result<StickyPayload>
+    where
+        T: Identifiable + Debug,
+    {
+        // root_population_command
+        //  spheres
+        //   tokens
+        //    payload
+        //     entity_id
+
+        trace!(
+            ?game_item,
+            "Getting item from save file"
+        );
+
+        if let Some(root_population_command) = self.root_population_command.as_ref() {
+            if let Some(spheres) = &root_population_command.spheres {
+                // Find the sphere containing the item
+                for sphere in spheres {
+                    if let Some(tokens) = &sphere.tokens {
+                        for token in tokens {
+                            if let Some(payload) = &token.payload {
+                                if let Some(dominions) = &payload.dominions {
+                                    for dominion in dominions {
+                                        if let Some(dspheres) = &dominion.spheres {
+                                            for dsphere in dspheres {
+                                                for dtokens in &dsphere.tokens {
+                                                    for dtoken in dtokens {
+                                                        if let Some(dpayload) = dtoken.payload.as_ref() {
+                                                            if dpayload.payload_type == PayloadType::SituationCreationCommand {
+                                                                if let Some(ddominions) = &dpayload.dominions {
+                                                                    for ddominion in ddominions {
+                                                                        if let Some(ddspheres) = &ddominion.spheres {
+                                                                            for ddsphere in ddspheres {
+                                                                                for ddtokens in &ddsphere.tokens {
+                                                                                    for ddtoken in ddtokens {
+                                                                                        if let Some(ddpayload) = ddtoken.payload.as_ref() {
+                                                                                            if let Some(ddpayload_id) = &ddpayload.id {
+                                                                                                debug!(
+                                                                                                    payload_id =? ddpayload_id,
+                                                                                                    game_item_id =? game_item.inner_id(),
+                                                                                                    "Checking if payload contains item"
+                                                                                                );
+                                                                                                if ddpayload_id
+                                                                                                    .to_ascii_lowercase()
+                                                                                                    .contains(game_item
+                                                                                                        .inner_id()
+                                                                                                        .to_ascii_lowercase()
+                                                                                                        .as_str())
+                                                                                                {
+                                                                                                    // Return the matching innermost payload
+                                                                                                    return Ok(ddpayload.clone());
+                                                                                                }
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
                                                                     }
                                                                 }
                                                             } else {
