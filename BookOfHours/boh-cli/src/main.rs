@@ -421,11 +421,11 @@ where
         Either::Left(maybe_sticky_payload) => {
             if let Ok(sticky_payload) = maybe_sticky_payload {
                 debug!(
-                    ?sticky_payload,
                     ?label,
                     ?description,
-                    "Found sticky payload for item",
+                    "Found sticky payload for item"
                 );
+                trace!(?sticky_payload);
                 if !sticky_payload.has_mastery() {
                     bail!("Tome has not been mastered yet! (You might be studying it)");
                 }
@@ -434,11 +434,11 @@ where
         Either::Right(maybe_tentacled_payload) => {
             if let Ok(tentacled_payload) = maybe_tentacled_payload {
                 debug!(
-                    ?tentacled_payload,
                     ?label,
                     ?description,
-                    "Found tentacled payload for item",
+                    "Found tentacled payload for item"
                 );
+                trace!(?tentacled_payload);
                 if !tentacled_payload.has_mastery() {
                     bail!("Tome has not been mastered yet!");
                 }

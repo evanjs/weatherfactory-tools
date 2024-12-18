@@ -54,7 +54,7 @@ impl Autosave {
                                                         {
                                                             if dpayload.payload_type == PayloadType::ElementStackCreationCommand {
                                                                 if let Some(dpayload_id) = &dpayload.id {
-                                                                    debug!(
+                                                                    trace!(
                                                                         payload_id =? dpayload_id,
                                                                         game_item_id =? game_item.inner_id(),
                                                                         "Checking if payload contains item"
@@ -121,22 +121,13 @@ impl Autosave {
     {
         let mastered_item = self.get_item_from_save_file(game_item);
 
-        debug!(
-            ?mastered_item,
-            "Found item in save file.\nChecking if item is mastered or being studied"
-        );
+        debug!("Found item in save file.\nChecking if item is mastered or being studied");
         if mastered_item.is_err() {
             let studying_item = self.get_studying_item_from_save_file(game_item);
-            debug!(
-                ?studying_item,
-                "Item is not mastered, checking if it is being studied"
-            );
+            debug!("Item is not mastered, checking if it is being studied");
             Either::Left(studying_item)
         } else {
-            debug!(
-                ?mastered_item,
-                "Found mastered item, returning it instead of the studying item"
-            );
+            debug!("Found mastered item, returning it instead of the studying item");
             Either::Right(mastered_item)
         }
     }
@@ -182,7 +173,7 @@ impl Autosave {
                                                                                     for ddtoken in ddtokens {
                                                                                         if let Some(ddpayload) = ddtoken.payload.as_ref() {
                                                                                             if let Some(ddpayload_id) = &ddpayload.id {
-                                                                                                debug!(
+                                                                                                trace!(
                                                                                                     payload_id =? ddpayload_id,
                                                                                                     game_item_id =? game_item.inner_id(),
                                                                                                     "Checking if payload contains item"
