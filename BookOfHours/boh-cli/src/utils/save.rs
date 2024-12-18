@@ -121,10 +121,22 @@ impl Autosave {
     {
         let mastered_item = self.get_item_from_save_file(game_item);
 
+        debug!(
+            ?mastered_item,
+            "Found item in save file.\nChecking if item is mastered or being studied"
+        );
         if mastered_item.is_err() {
             let studying_item = self.get_studying_item_from_save_file(game_item);
+            debug!(
+                ?studying_item,
+                "Item is not mastered, checking if it is being studied"
+            );
             Either::Left(studying_item)
         } else {
+            debug!(
+                ?mastered_item,
+                "Found mastered item, returning it instead of the studying item"
+            );
             Either::Right(mastered_item)
         }
     }

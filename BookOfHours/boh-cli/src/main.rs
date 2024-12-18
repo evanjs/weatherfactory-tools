@@ -410,7 +410,7 @@ where
         .read()
         .expect("Failed to get game documents")
         .check_if_item_manifested(&serializable_value)?;
-    println!("Already manifested? {}", has_been_manifested);
+    info!("Already manifested? {}", has_been_manifested);
 
     let thing = game_documents
         .read()
@@ -420,6 +420,12 @@ where
     match thing {
         Either::Left(maybe_sticky_payload) => {
             if let Ok(sticky_payload) = maybe_sticky_payload {
+                debug!(
+                    ?sticky_payload,
+                    ?label,
+                    ?description,
+                    "Found sticky payload for item",
+                );
                 if !sticky_payload.has_mastery() {
                     bail!("Tome has not been mastered yet! (You might be studying it)");
                 }
@@ -427,6 +433,12 @@ where
         }
         Either::Right(maybe_tentacled_payload) => {
             if let Ok(tentacled_payload) = maybe_tentacled_payload {
+                debug!(
+                    ?tentacled_payload,
+                    ?label,
+                    ?description,
+                    "Found tentacled payload for item",
+                );
                 if !tentacled_payload.has_mastery() {
                     bail!("Tome has not been mastered yet!");
                 }
