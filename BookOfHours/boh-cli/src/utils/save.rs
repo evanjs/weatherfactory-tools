@@ -1,13 +1,12 @@
 use crate::model::save::{
-    Autosave, PayloadType, RootPopulationCommandSphere, StickyPayload, TentacledPayload,
+    Autosave, PayloadType, StickyPayload, TentacledPayload,
 };
 use crate::model::Identifiable;
 use anyhow::Ok;
-use anyhow::{anyhow, bail};
-use clipboard_rs::{Clipboard, ClipboardContext};
+use anyhow::bail;
 use either::Either;
 use std::fmt::Debug;
-use tracing::{debug, error, trace, warn};
+use tracing::{debug, trace, warn};
 
 impl Autosave {
     #[tracing::instrument(skip(self))]

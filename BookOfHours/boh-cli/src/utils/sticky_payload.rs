@@ -4,8 +4,7 @@ use crate::model::{Identifiable, Mastery};
 impl Mastery for StickyPayload {
     fn has_mastery(&self) -> bool {
         let mutations = self.mutations.as_ref().unwrap();
-        let mut mutations_mastered = vec![
-            mutations.mastery_grail,
+        let mutations_mastered = [mutations.mastery_grail,
             mutations.mastery_heart,
             mutations.mastery_knock,
             mutations.mastery_lantern,
@@ -15,8 +14,7 @@ impl Mastery for StickyPayload {
             mutations.mastery_rose,
             mutations.mastery_scale,
             mutations.mastery_sky,
-            mutations.mastery_winter,
-        ];
+            mutations.mastery_winter];
 
         mutations_mastered
             .iter()

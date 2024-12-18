@@ -3,7 +3,7 @@ use crate::QueryType;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
-use tracing::{info, trace, warn};
+use tracing::{trace, warn};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct AspectedItems {

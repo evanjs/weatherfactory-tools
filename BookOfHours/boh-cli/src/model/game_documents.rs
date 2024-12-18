@@ -3,7 +3,7 @@ use crate::model::aspected_items::AspectedItems;
 use crate::model::aspects::Aspects;
 use crate::model::consider_books::ConsiderBooks;
 use crate::model::lessons::Lessons;
-use crate::model::save::{Autosave, RootPopulationCommandSphere, StickyPayload, TentacledPayload};
+use crate::model::save::{Autosave, StickyPayload, TentacledPayload};
 use crate::model::skills::Skills;
 use crate::model::tomes::Tomes;
 use crate::model::{Identifiable, Mastery};
@@ -111,7 +111,7 @@ impl GameDocuments {
             skills_data.into(),
             lessons_data.into(),
             //contamination_aspects_data.into(),
-            autosave_data.into(),
+            autosave_data,
         );
         Ok(game_documents)
     }

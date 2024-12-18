@@ -21,8 +21,7 @@ use crate::model::aspected_items::AspectedItems;
 use crate::model::aspects::Aspects;
 use crate::model::config::Config;
 use crate::model::consider_books::ConsiderBooks;
-use crate::model::lessons::Lessons;
-use crate::model::save::{Autosave, Path, StickyPayload, TentacledPayload};
+use crate::model::save::{Autosave, TentacledPayload};
 use crate::model::skills::Skills;
 use crate::model::tomes::Tomes;
 use crate::model::{FindById, GameCollectionType, GameElementDetails, Identifiable, Mastery};
@@ -32,12 +31,10 @@ use crossbeam_channel::{select, unbounded};
 use either::Either;
 use model::game_documents::GameDocuments;
 use notify::event::ModifyKind;
-use notify::RecursiveMode::Recursive;
 use rustyline::history::DefaultHistory;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use strum_macros::EnumString;
-use utils::save;
 
 static APP_PATH_FULL: &str = "evanjs/weatherfactory-tools/book-of-hours_cli";
 static APP_CONFIG_FILE_NAME: &str = "app_config";
@@ -752,24 +749,18 @@ fn main() -> anyhow::Result<()> {
                         match msg {
                             Ok(result) => match result {
                                 Ok(event) => {
-                                        match event.kind {
-                                            EventKind::Modify(m) => {
-                                                match m {
-                                                    ModifyKind::Data(_data) => {
-                                                        debug!(?event, "Autosave file changed");
-                                                        trace!("Updating game documents");
-                                                        if let Err(error) = update_autosave_document(autosave_gd.clone()) {
-                                                            warn!("Error when updating autosave document: {:?}", error);
-                                                        } else {
-                                                            // TODO: consider promoting the log severity
-                                                            //  - when we can more accurately filter events out spammy events
-                                                            debug!("Autosave document updated successfully");
-                                                        }
-                                                    }
-                                                _ => {}
+                                        if let EventKind::Modify(m) = event.kind {
+                                            if let ModifyKind::Data(_data) = m {
+                                                debug!(?event, "Autosave file changed");
+                                                trace!("Updating game documents");
+                                                if let Err(error) = update_autosave_document(autosave_gd.clone()) {
+                                                    warn!("Error when updating autosave document: {:?}", error);
+                                                } else {
+                                                    // TODO: consider promoting the log severity
+                                                    //  - when we can more accurately filter events out spammy events
+                                                    debug!("Autosave document updated successfully");
                                                 }
-                                            },
-                                            _ => {}
+                                            }
                                         }
                                 },
                                 Err(e) => {
@@ -812,7 +803,7 @@ fn main() -> anyhow::Result<()> {
         let readline_string = if mode.is_empty() {
             "Enter command ('exit' to quit; 'help' for more commands): ".into()
         } else {
-            format!("{}", current_mode_string)
+            current_mode_string.to_string()
         };
 
         let readline = rl.readline(readline_string.as_str());
