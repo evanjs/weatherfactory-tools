@@ -214,21 +214,47 @@ pub enum AtriumType {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Effect {
-    Autumn,
-    Day,
+    // elements/incidents_weather
+    Clouds,
+    Earthquake,
     Fog,
-    Midday,
-    None,
-    Open,
-    Dusk,
+    Gale,
     Hail,
-    Setspeed,
+
+    #[serde(rename(serialize = "Nume-Brume", deserialize = "nume_brume"))]
+    NumeBrume,
+    Rain,
+    Snow,
+    Storm,
+    Sunny,
+
+    // elements/celestial
+    Afternoon,
+    Autumn,
+    #[serde(rename(serialize = "Autumn [Paused]", deserialize = "autumn_paused"))]
+    AutumnPaused,
     Dawn,
     Daybreak,
-    Snow,
-    Winter,
+    Dusk,
+    Midday,
     Morning,
-    Afternoon
+    Night,
+    Numa,
+    #[serde(rename(serialize = "Numa Next", deserialize = "numa_next"))]
+    NumaNext,
+    #[serde(rename(serialize = "Numa Not Yet", deserialize = "numa_not_yet"))]
+    NumaNotYet,
+    Spring,
+    #[serde(rename(serialize = "Spring [Paused]", deserialize = "spring_paused"))]
+    SpringPaused,
+    Summer,
+    #[serde(rename(serialize = "Summer [Paused]", deserialize = "summer_paused"))]
+    SummerPaused,
+    #[serde(rename(serialize = "Towards Numa", deserialize = "towards_numa"))]
+    TowardsNuma,
+    Winter,
+    #[serde(rename(serialize = "Winter [Paused]", deserialize = "winter_paused"))]
+    WinterPaused
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
