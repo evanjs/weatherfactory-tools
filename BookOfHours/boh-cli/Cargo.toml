@@ -37,3 +37,4 @@ dirs = "5.0.1"
 notify = { version = "7.0.0", features = ["crossbeam-channel"] }
 crossbeam-channel = "0.5.13"
 signal-hook = "0.3.17"
+either = { version = "1.13.0", features = ["serde"] }

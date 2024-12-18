@@ -22,13 +22,14 @@ use crate::model::aspects::Aspects;
 use crate::model::config::Config;
 use crate::model::consider_books::ConsiderBooks;
 use crate::model::lessons::Lessons;
-use crate::model::save::{Autosave, Path};
+use crate::model::save::{Autosave, Path, StickyPayload, TentacledPayload};
 use crate::model::skills::Skills;
 use crate::model::tomes::Tomes;
-use crate::model::{FindById, GameCollectionType, GameElementDetails, Identifiable};
+use crate::model::{FindById, GameCollectionType, GameElementDetails, Identifiable, Mastery};
 use anyhow::{anyhow, bail, Error};
 use clipboard_rs::{Clipboard, ClipboardContext};
 use crossbeam_channel::{select, unbounded};
+use either::Either;
 use notify::event::ModifyKind;
 use notify::RecursiveMode::Recursive;
 use rustyline::history::DefaultHistory;
@@ -401,18 +402,12 @@ fn copy_and_print<U>(
     verbose_output: bool,
 ) -> anyhow::Result<()>
 where
-    U: Serialize + GameElementDetails + Identifiable + Clone + Debug,
+    U: Serialize + GameElementDetails + Identifiable + Clone + Debug + ?Sized,
 {
     let label = serializable_value.get_label();
     let description = serializable_value.get_desc();
 
     debug!(?label, ?description, ?query_type, "Found object to print");
-
-    // Copy tab-separated values to clipboard for pasting into Excel
-    let combined = format!("{}\t{}", label, description);
-    println!("{}", combined);
-
-    copy_if_clipboard_found(combined);
 
     let has_been_manifested = game_documents
         .read()
@@ -420,70 +415,34 @@ where
         .check_if_item_manifested(&serializable_value)?;
     println!("Already manifested? {}", has_been_manifested);
 
-    let item_from_save_file = match game_documents
+    let thing = game_documents
         .read()
         .expect("Failed to get game documents")
-        .get_item_from_save_file(&serializable_value) {
-        Ok(o) => {o}
-        Err(e) => {
-            let am_i_studying_this = game_documents
-                .read()
-                .expect("Failed to get game documents")
-                .get_studying_item_from_save_file(&serializable_value);
-
-            if let Ok(o) = am_i_studying_this {
-                if let true = game_documents
-                    .read()
-                    .expect("Failed to get game documents")
-                    .check_if_tome_mastered(&o) {
-                    unreachable!()
-                } else {
-                    error!(error =? e, "Not printing data for tome being studied!");
-                    bail!("Not printing details for tome being studied!");
+        .autosave
+        .get_mastered_or_studying_item_from_save_file(&serializable_value);
+    match thing {
+        Either::Left(maybe_sticky_payload) => {
+            if let Ok(sticky_payload) = maybe_sticky_payload {
+                if !sticky_payload.has_mastery() {
+                    bail!("Tome has not been mastered yet! (You might be studying it)");
                 }
-            } else if let Err(e) = am_i_studying_this {
-                bail!("Failed to resolve query for known or studying item!");
-            } else {
-                unreachable!()
             }
         }
-    };
-
-    let have_i_mastered_this = game_documents
-        .read()
-        .expect("Failed to get game documents")
-        .check_if_tome_mastered(&item_from_save_file);
-
-
-    debug!(
-        ?item_from_save_file,
-        "Found item from save file"
-    );
-
-    if query_type.eq(&QueryType::Tomes) {
-        // if querying tomes, check whether found item has been read (i.e. _mastered_)
-        if !have_i_mastered_this {
-            error!(
-                ?label,
-                "TOME HAS NOT YET BEEN READ"
-            );
-            bail!("Not printing details for unread tome!");
-        }
-    } else {
-        // check if item has been crafted
-
-        if !has_been_manifested {
-            // Print "label: description"
-            println!("{}: {}", label, description);
-        } else {
-            // Print "label: description"
-            error!(
-                ?label,
-                "Item has not yet been manifested"
-            );
-            bail!("Not printing details for element not yet manifested!");
+        Either::Right(maybe_tentacled_payload) => {
+            if let Ok(tentacled_payload) = maybe_tentacled_payload {
+                if !tentacled_payload.has_mastery() {
+                    bail!("Tome has not been mastered yet!");
+                }
+            }
         }
     }
+
+    // Copy tab-separated values to clipboard for pasting into Excel
+    let combined = format!("{}\t{}", label, description);
+    println!("{}", combined);
+
+    copy_if_clipboard_found(combined);
+
 
     // print each extra item
     if !serializable_value.get_extra().is_empty() {
@@ -542,6 +501,83 @@ where
     }
 
     Ok(())
+}
+
+fn handle_sticky_payload<T>(
+    game_documents: Arc<RwLock<GameDocuments>>,
+    serializable_value: T,
+) -> anyhow::Result<()> where
+    T: Serialize + GameElementDetails + Identifiable + Clone + Debug,
+{
+    let am_i_studying_this = game_documents
+        .read()
+        .expect("Failed to get game documents")
+        .get_studying_item_from_save_file(&serializable_value);
+
+    if let Ok(o) = am_i_studying_this {
+        let is_mastered = game_documents
+            .read()
+            .expect("Failed to get game documents")
+            .check_if_tome_mastered(&o);
+        if is_mastered {
+            Ok(())
+        } else {
+            bail!("Not printing details for tome being studied!")
+        }
+    } else if let Err(e) = am_i_studying_this {
+        bail!("Failed to resolve query for known or studying item!");
+    } else {
+        bail!("What is happening");
+    }
+}
+
+fn check_if_tentacled_payload_mastered(
+    game_documents: Arc<RwLock<GameDocuments>>,
+    item_from_save_file: TentacledPayload,
+    query_type: QueryType,
+    label: &str,
+    description: &str,
+    has_been_manifested: bool,
+) -> anyhow::Result<()> {
+    let have_i_mastered_this = game_documents
+        .read()
+        .expect("Failed to get game documents")
+        .check_if_tome_mastered(&item_from_save_file);
+
+
+    debug!(
+        ?item_from_save_file,
+        "Found item from save file"
+    );
+
+    if query_type.eq(&QueryType::Tomes) {
+        // if querying tomes, check whether found item has been read (i.e. _mastered_)
+        if !have_i_mastered_this {
+            error!(
+                ?label,
+                "TOME HAS NOT YET BEEN READ"
+            );
+            bail!("Not printing details for unread tome!")
+        } else {
+            Ok(())
+        }
+    } else {
+        // check if item has been crafted
+
+        if !has_been_manifested {
+            // Print "label: description"
+            println!("{}: {}", label, description);
+            Ok(())
+        } else {
+            // Print "label: description"
+            error!(
+                ?label,
+                "Item has not yet been manifested"
+            );
+            bail!("Not printing details for element not yet manifested!");
+        }
+    }
+
 }
 
 fn copy_if_clipboard_found(text_to_copy: String) {

@@ -1,4 +1,4 @@
-use crate::model::Mastery;
+use crate::model::{Identifiable, Mastery};
 use crate::model::save::StickyPayload;
 
 impl Mastery for StickyPayload {
@@ -25,5 +25,15 @@ impl Mastery for StickyPayload {
                 val > 0
             })
         })
+    }
+}
+
+impl Identifiable for StickyPayload {
+    fn id(&self) -> &str {
+        self.id.as_ref().unwrap()
+    }
+
+    fn inner_id(&self) -> &str {
+        self.entity_id.as_ref().unwrap()
     }
 }

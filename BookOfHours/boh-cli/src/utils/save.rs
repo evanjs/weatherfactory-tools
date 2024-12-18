@@ -2,6 +2,7 @@ use std::fmt::Debug;
 use anyhow::{anyhow, bail};
 use anyhow::Ok;
 use clipboard_rs::{Clipboard, ClipboardContext};
+use either::Either;
 use tracing::{debug, error, trace, warn};
 use crate::model::Identifiable;
 use crate::model::save::{Autosave, PayloadType, RootPopulationCommandSphere, StickyPayload, TentacledPayload};
@@ -31,7 +32,7 @@ impl Autosave {
         game_item: &T,
     ) -> anyhow::Result<TentacledPayload>
     where
-        T: Identifiable + Debug,
+        T: Identifiable + Debug + ?Sized,
     {
         // root_population_command
         //  spheres
@@ -102,13 +103,30 @@ impl Autosave {
         }
     }
 
+    pub(crate) fn get_mastered_or_studying_item_from_save_file<T>(
+        &self,
+        game_item: &T,
+    ) -> Either<anyhow::Result<StickyPayload>, anyhow::Result<TentacledPayload>>
+    where
+        T: Identifiable + Debug + ?Sized
+    {
+        let mastered_item = self.get_item_from_save_file(game_item);
+
+        if mastered_item.is_err() {
+            let studying_item = self.get_studying_item_from_save_file(game_item);
+            Either::Left(studying_item)
+        } else {
+            Either::Right(mastered_item)
+        }
+    }
+
     #[tracing::instrument(skip(self, game_item))]
     pub(crate) fn get_studying_item_from_save_file<T>(
         &self,
         game_item: &T,
     ) -> anyhow::Result<StickyPayload>
     where
-        T: Identifiable + Debug,
+        T: Identifiable + Debug + ?Sized,
     {
         // root_population_command
         //  spheres
