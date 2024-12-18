@@ -223,7 +223,8 @@ pub enum Effect {
     Dusk,
     Hail,
     Setspeed,
-    Dawn
+    Dawn,
+    Daybreak
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
