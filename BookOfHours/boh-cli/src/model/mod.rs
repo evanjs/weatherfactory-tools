@@ -7,11 +7,11 @@ pub(crate) mod aspected_items;
 pub(crate) mod aspects;
 pub(crate) mod config;
 pub(crate) mod consider_books;
+pub(crate) mod game_documents;
 pub(crate) mod lessons;
+pub(crate) mod save;
 pub(crate) mod skills;
 pub(crate) mod tomes;
-pub(crate) mod save;
-pub(crate) mod game_documents;
 
 // Define a shared trait for elements that have an ID field
 pub trait Identifiable {
@@ -34,8 +34,6 @@ pub trait GameElementDetails {
         HashMap::new()
     }
 }
-
-
 
 // Define a trait for collections that can find elements by ID
 pub trait FindById {

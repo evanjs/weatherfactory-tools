@@ -1,10 +1,8 @@
-use crate::model::{Identifiable, Mastery};
 use crate::model::save::StickyPayload;
+use crate::model::{Identifiable, Mastery};
 
 impl Mastery for StickyPayload {
-    fn has_mastery(
-        &self,
-    ) -> bool {
+    fn has_mastery(&self) -> bool {
         let mutations = self.mutations.as_ref().unwrap();
         let mut mutations_mastered = vec![
             mutations.mastery_grail,
@@ -17,14 +15,12 @@ impl Mastery for StickyPayload {
             mutations.mastery_rose,
             mutations.mastery_scale,
             mutations.mastery_sky,
-            mutations.mastery_winter
+            mutations.mastery_winter,
         ];
 
-        mutations_mastered.iter().any(|x|{
-            x.is_some_and(|val|{
-                val > 0
-            })
-        })
+        mutations_mastered
+            .iter()
+            .any(|x| x.is_some_and(|val| val > 0))
     }
 }
 

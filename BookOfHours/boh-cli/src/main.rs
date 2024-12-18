@@ -9,13 +9,13 @@ use std::io::{BufRead, BufReader};
 use tracing::{debug, error, info, trace, warn};
 
 use encoding_rs::{UTF_16LE, UTF_8};
+use notify::{recommended_watcher, Event, EventKind, RecursiveMode, Watcher};
 use rustyline::error::ReadlineError;
 use rustyline::{DefaultEditor, Editor};
 use std::path::PathBuf;
-use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, RwLock};
 use std::thread;
-use notify::{recommended_watcher, Event, EventKind, RecursiveMode, Watcher};
 
 use crate::model::aspected_items::AspectedItems;
 use crate::model::aspects::Aspects;
@@ -30,13 +30,13 @@ use anyhow::{anyhow, bail, Error};
 use clipboard_rs::{Clipboard, ClipboardContext};
 use crossbeam_channel::{select, unbounded};
 use either::Either;
+use model::game_documents::GameDocuments;
 use notify::event::ModifyKind;
 use notify::RecursiveMode::Recursive;
 use rustyline::history::DefaultHistory;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use strum_macros::EnumString;
-use model::game_documents::GameDocuments;
 use utils::save;
 
 static APP_PATH_FULL: &str = "evanjs/weatherfactory-tools/book-of-hours_cli";
@@ -64,19 +64,18 @@ enum QueryType {
     ConsiderBooks,
 }
 
-
 /// Read the game's configuration file
-/// 
-/// returns: Result<HashMap<String, String, RandomState>, Error> 
-/// 
-/// # Examples 
-/// 
+///
+/// returns: Result<HashMap<String, String, RandomState>, Error>
+///
+/// # Examples
+///
 /// ```
-/// 
+///
 /// ```
 fn read_game_config() -> anyhow::Result<HashMap<String, String>> {
-    let file_path = get_config_file_path()
-        .unwrap_or(bail!("Failed to retrieve configuration file path"));
+    let file_path =
+        get_config_file_path().unwrap_or(bail!("Failed to retrieve configuration file path"));
     let file = std::fs::File::open(file_path)?;
     let reader = BufReader::new(file);
     let mut config = HashMap::new();
@@ -443,7 +442,6 @@ where
 
     copy_if_clipboard_found(combined);
 
-
     // print each extra item
     if !serializable_value.get_extra().is_empty() {
         for (extra_key, extra_value) in serializable_value
@@ -506,7 +504,8 @@ where
 fn handle_sticky_payload<T>(
     game_documents: Arc<RwLock<GameDocuments>>,
     serializable_value: T,
-) -> anyhow::Result<()> where
+) -> anyhow::Result<()>
+where
     T: Serialize + GameElementDetails + Identifiable + Clone + Debug,
 {
     let am_i_studying_this = game_documents
@@ -544,19 +543,12 @@ fn check_if_tentacled_payload_mastered(
         .expect("Failed to get game documents")
         .check_if_tome_mastered(&item_from_save_file);
 
-
-    debug!(
-        ?item_from_save_file,
-        "Found item from save file"
-    );
+    debug!(?item_from_save_file, "Found item from save file");
 
     if query_type.eq(&QueryType::Tomes) {
         // if querying tomes, check whether found item has been read (i.e. _mastered_)
         if !have_i_mastered_this {
-            error!(
-                ?label,
-                "TOME HAS NOT YET BEEN READ"
-            );
+            error!(?label, "TOME HAS NOT YET BEEN READ");
             bail!("Not printing details for unread tome!")
         } else {
             Ok(())
@@ -570,14 +562,10 @@ fn check_if_tentacled_payload_mastered(
             Ok(())
         } else {
             // Print "label: description"
-            error!(
-                ?label,
-                "Item has not yet been manifested"
-            );
+            error!(?label, "Item has not yet been manifested");
             bail!("Not printing details for element not yet manifested!");
         }
     }
-
 }
 
 fn copy_if_clipboard_found(text_to_copy: String) {
@@ -591,7 +579,6 @@ fn copy_if_clipboard_found(text_to_copy: String) {
             debug!(?error, "Failed to get clipboard context");
         }
     }
-
 }
 
 //noinspection ALL,RsUnreachablePatterns
@@ -742,11 +729,17 @@ fn main() -> anyhow::Result<()> {
     // Use the receiver in your loop:
     let gda = Arc::clone(&game_documents_arc);
     // Create a crossbeam channel for communicating autosave events
-    let (tx, rx): (crossbeam_channel::Sender<notify::Result<Event>>, crossbeam_channel::Receiver<notify::Result<Event>>) = unbounded();
+    let (tx, rx): (
+        crossbeam_channel::Sender<notify::Result<Event>>,
+        crossbeam_channel::Receiver<notify::Result<Event>>,
+    ) = unbounded();
 
     let mut watcher = recommended_watcher(tx.clone())?;
     let autosave_path = get_autosave_file()?;
-    watcher.watch(std::path::Path::new(&autosave_path), RecursiveMode::NonRecursive)?;
+    watcher.watch(
+        std::path::Path::new(&autosave_path),
+        RecursiveMode::NonRecursive,
+    )?;
 
     let autosave_flag = Arc::new(AtomicBool::new(true)); // Shared flag to control thread lifecycle
     let autosave_handle = thread::spawn({
@@ -755,49 +748,49 @@ fn main() -> anyhow::Result<()> {
         move || {
             loop {
                 select! {
-                recv(rx) -> msg => {
-                    match msg {
-                        Ok(result) => match result {
-                            Ok(event) => {
-                                    match event.kind {
-                                        EventKind::Modify(m) => {
-                                            match m {
-                                                ModifyKind::Data(_data) => {
-                                                    debug!(?event, "Autosave file changed");
-                                                    trace!("Updating game documents");
-                                                    if let Err(error) = update_autosave_document(autosave_gd.clone()) {
-                                                        warn!("Error when updating autosave document: {:?}", error);
-                                                    } else {
-                                                        // TODO: consider promoting the log severity
-                                                        //  - when we can more accurately filter events out spammy events
-                                                        debug!("Autosave document updated successfully");
+                    recv(rx) -> msg => {
+                        match msg {
+                            Ok(result) => match result {
+                                Ok(event) => {
+                                        match event.kind {
+                                            EventKind::Modify(m) => {
+                                                match m {
+                                                    ModifyKind::Data(_data) => {
+                                                        debug!(?event, "Autosave file changed");
+                                                        trace!("Updating game documents");
+                                                        if let Err(error) = update_autosave_document(autosave_gd.clone()) {
+                                                            warn!("Error when updating autosave document: {:?}", error);
+                                                        } else {
+                                                            // TODO: consider promoting the log severity
+                                                            //  - when we can more accurately filter events out spammy events
+                                                            debug!("Autosave document updated successfully");
+                                                        }
                                                     }
+                                                _ => {}
                                                 }
+                                            },
                                             _ => {}
-                                            }
-                                        },
-                                        _ => {}
-                                    }
+                                        }
+                                },
+                                Err(e) => {
+                                    println!("autosave watch error: {:?}", e);
+                                }
                             },
-                            Err(e) => {
-                                println!("autosave watch error: {:?}", e);
+                            Err(_) => {
+                                // Sender (tx) is closed, break loop
+                                println!("No more messages. Exiting autosave thread.");
+                                break;
                             }
-                        },
-                        Err(_) => {
-                            // Sender (tx) is closed, break loop
-                            println!("No more messages. Exiting autosave thread.");
+                        }
+                    }
+                    default => {
+                        // Periodically check the shutdown flag
+                        if !autosave_flag.load(Ordering::SeqCst) {
+                            println!("Shutdown signal received. Exiting autosave thread.");
                             break;
                         }
                     }
                 }
-                default => {
-                    // Periodically check the shutdown flag
-                    if !autosave_flag.load(Ordering::SeqCst) {
-                        println!("Shutdown signal received. Exiting autosave thread.");
-                        break;
-                    }
-                }
-            }
             }
         }
     });
@@ -931,9 +924,7 @@ Available modes:
     autosave_flag.store(false, Ordering::SeqCst); // Signal the autosave thread to shut down
 
     // Wait for the autosave thread to exit
-    autosave_handle
-        .join()
-        .expect("Autosave thread panicked");
+    autosave_handle.join().expect("Autosave thread panicked");
 
     maybe_save_history_file(&mut rl, &history_path)?;
 
@@ -944,17 +935,19 @@ fn update_autosave_document(game_documents: Arc<RwLock<GameDocuments>>) -> anyho
     let autosave_path = get_autosave_file()?;
     let autosave_data = load_autosave(autosave_path)?;
 
-    game_documents.write().expect("Failed to get write lock for game documents").autosave = autosave_data;
+    game_documents
+        .write()
+        .expect("Failed to get write lock for game documents")
+        .autosave = autosave_data;
     Ok(())
 }
 
 #[tracing::instrument]
 fn load_autosave(autosave_path: PathBuf) -> anyhow::Result<Autosave> {
-    let autosave_path_str = autosave_path.to_str().expect("Failed to convert path to string");
-    debug!(
-        ?autosave_path_str,
-        "Attempting to read autosave file"
-    );
+    let autosave_path_str = autosave_path
+        .to_str()
+        .expect("Failed to convert path to string");
+    debug!(?autosave_path_str, "Attempting to read autosave file");
     let autosave_contents = read_file_content(autosave_path_str)?;
     let autosave: Autosave = serde_json::from_str(&autosave_contents)?;
 
@@ -1029,11 +1022,7 @@ fn deserialize_json_with_arbitrary_encoding(file_path: &PathBuf) -> anyhow::Resu
     let json_value: Value = match serde_json_lenient::from_str_lenient(&file_contents) {
         Ok(json_value) => json_value,
         Err(error) => {
-            error!(
-                ?error,
-                ?file_path,
-                "Failed to deserialize JSON"
-            );
+            error!(?error, ?file_path, "Failed to deserialize JSON");
             bail!("Failed to deserialize JSON");
         }
     };

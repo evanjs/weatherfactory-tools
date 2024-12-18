@@ -1,10 +1,8 @@
-use crate::model::Mastery;
 use crate::model::save::TentacledPayload;
+use crate::model::Mastery;
 
 impl Mastery for TentacledPayload {
-    fn has_mastery(
-        &self,
-    ) -> bool {
+    fn has_mastery(&self) -> bool {
         let mutations = self.mutations.as_ref().unwrap();
         let mut mutations_mastered = vec![
             mutations.mastery_edge,
@@ -19,13 +17,11 @@ impl Mastery for TentacledPayload {
             mutations.mastery_rose,
             mutations.mastery_scale,
             mutations.mastery_sky,
-            mutations.mastery_winter
+            mutations.mastery_winter,
         ];
 
-        mutations_mastered.iter().any(|x|{
-            x.is_some_and(|val|{
-                val > 0
-            })
-        })
+        mutations_mastered
+            .iter()
+            .any(|x| x.is_some_and(|val| val > 0))
     }
 }

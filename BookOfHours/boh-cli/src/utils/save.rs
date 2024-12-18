@@ -1,28 +1,23 @@
-use std::fmt::Debug;
-use anyhow::{anyhow, bail};
+use crate::model::save::{
+    Autosave, PayloadType, RootPopulationCommandSphere, StickyPayload, TentacledPayload,
+};
+use crate::model::Identifiable;
 use anyhow::Ok;
+use anyhow::{anyhow, bail};
 use clipboard_rs::{Clipboard, ClipboardContext};
 use either::Either;
+use std::fmt::Debug;
 use tracing::{debug, error, trace, warn};
-use crate::model::Identifiable;
-use crate::model::save::{Autosave, PayloadType, RootPopulationCommandSphere, StickyPayload, TentacledPayload};
 
 impl Autosave {
-
     #[tracing::instrument(skip(self))]
-    pub(crate) fn check_if_item_manifested<T>(
-        &self,
-        game_item: &T
-    ) -> anyhow::Result<bool>
+    pub(crate) fn check_if_item_manifested<T>(&self, game_item: &T) -> anyhow::Result<bool>
     where
         T: Identifiable + Debug,
     {
         let manifested_items = self.get_unique_items()?;
         let item_id = game_item.inner_id().to_string();
-        debug!(
-            ?item_id,
-            "Checking if item has been manifested"
-        );
+        debug!(?item_id, "Checking if item has been manifested");
         Ok(manifested_items.contains(&item_id))
     }
 
@@ -40,10 +35,7 @@ impl Autosave {
         //    payload
         //     entity_id
 
-        trace!(
-            ?game_item,
-            "Getting item from save file"
-        );
+        trace!(?game_item, "Getting item from save file");
 
         if let Some(root_population_command) = self.root_population_command.as_ref() {
             if let Some(spheres) = &root_population_command.spheres {
@@ -58,7 +50,9 @@ impl Autosave {
                                             for dsphere in dspheres {
                                                 for dtokens in &dsphere.tokens {
                                                     for dtoken in dtokens {
-                                                        if let Some(dpayload) = dtoken.payload.as_ref() {
+                                                        if let Some(dpayload) =
+                                                            dtoken.payload.as_ref()
+                                                        {
                                                             if dpayload.payload_type == PayloadType::ElementStackCreationCommand {
                                                                 if let Some(dpayload_id) = &dpayload.id {
                                                                     debug!(
@@ -108,7 +102,7 @@ impl Autosave {
         game_item: &T,
     ) -> Either<anyhow::Result<StickyPayload>, anyhow::Result<TentacledPayload>>
     where
-        T: Identifiable + Debug + ?Sized
+        T: Identifiable + Debug + ?Sized,
     {
         let mastered_item = self.get_item_from_save_file(game_item);
 
@@ -134,10 +128,7 @@ impl Autosave {
         //    payload
         //     entity_id
 
-        trace!(
-            ?game_item,
-            "Getting item from save file"
-        );
+        trace!(?game_item, "Getting item from save file");
 
         if let Some(root_population_command) = self.root_population_command.as_ref() {
             if let Some(spheres) = &root_population_command.spheres {
@@ -152,7 +143,9 @@ impl Autosave {
                                             for dsphere in dspheres {
                                                 for dtokens in &dsphere.tokens {
                                                     for dtoken in dtokens {
-                                                        if let Some(dpayload) = dtoken.payload.as_ref() {
+                                                        if let Some(dpayload) =
+                                                            dtoken.payload.as_ref()
+                                                        {
                                                             if dpayload.payload_type == PayloadType::SituationCreationCommand {
                                                                 if let Some(ddominions) = &dpayload.dominions {
                                                                     for ddominion in ddominions {
@@ -211,7 +204,6 @@ impl Autosave {
         }
     }
 
-
     pub(crate) fn get_unique_items(&self) -> anyhow::Result<Vec<String>> {
         assert!(
             self.character_creation_commands.is_some(),
@@ -223,11 +215,15 @@ impl Autosave {
             .character_creation_commands
             .expect("Character creation commands should be present");
 
-        let unique_items_manifested = &character_creation_commands.first()
+        let unique_items_manifested = &character_creation_commands
+            .first()
             .expect("Failed to get first item in character creation commands")
             .unique_elements_manifested;
 
-        assert!(unique_items_manifested.is_some(), "Unique items should be present");
+        assert!(
+            unique_items_manifested.is_some(),
+            "Unique items should be present"
+        );
 
         let unique_items = unique_items_manifested.as_ref().unwrap();
 
