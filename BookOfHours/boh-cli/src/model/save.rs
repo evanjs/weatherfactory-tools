@@ -228,6 +228,7 @@ pub enum Effect {
     Snow,
     Winter,
     Morning,
+    Afternoon
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
