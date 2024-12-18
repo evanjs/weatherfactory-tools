@@ -47,7 +47,7 @@ impl Autosave {
                                     for dominion in dominions {
                                         if let Some(dspheres) = &dominion.spheres {
                                             for dsphere in dspheres {
-                                                while let Some(dtokens) = &dsphere.tokens {
+                                                for dtokens in &dsphere.tokens {
                                                     for dtoken in dtokens {
                                                         if let Some(dpayload) =
                                                             dtoken.payload.as_ref()
@@ -168,7 +168,7 @@ impl Autosave {
                                     for dominion in dominions {
                                         if let Some(dspheres) = &dominion.spheres {
                                             for dsphere in dspheres {
-                                                while let Some(dtokens) = &dsphere.tokens {
+                                                for dtokens in &dsphere.tokens {
                                                     for dtoken in dtokens {
                                                         if let Some(dpayload) =
                                                             dtoken.payload.as_ref()
@@ -178,7 +178,7 @@ impl Autosave {
                                                                     for ddominion in ddominions {
                                                                         if let Some(ddspheres) = &ddominion.spheres {
                                                                             for ddsphere in ddspheres {
-                                                                                while let Some(ddtokens) = &ddsphere.tokens {
+                                                                                for ddtokens in &ddsphere.tokens {
                                                                                     for ddtoken in ddtokens {
                                                                                         if let Some(ddpayload) = ddtoken.payload.as_ref() {
                                                                                             if let Some(ddpayload_id) = &ddpayload.id {
