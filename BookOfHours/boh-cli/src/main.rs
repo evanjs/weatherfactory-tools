@@ -410,6 +410,7 @@ where
 
     // Copy tab-separated values to clipboard for pasting into Excel
     let combined = format!("{}\t{}", label, description);
+    println!("{}", combined);
 
     copy_if_clipboard_found(combined);
 
