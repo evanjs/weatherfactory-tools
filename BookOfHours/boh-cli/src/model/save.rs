@@ -1140,6 +1140,28 @@ pub struct PurpleMutations {
     pub(crate) skill: Option<i64>,
     #[serde(rename = "mastery.sky")]
     pub(crate) mastery_sky: Option<i64>,
+    #[serde(rename = "mastery.forge")]
+    pub(crate) mastery_forge: Option<i64>,
+    #[serde(rename = "mastery.grail")]
+    pub(crate) mastery_grail: Option<i64>,
+    #[serde(rename = "mastery.lantern")]
+    pub(crate) mastery_lantern: Option<i64>,
+    #[serde(rename = "mastery.nectar")]
+    pub(crate) mastery_nectar: Option<i64>,
+    #[serde(rename = "mastery.scale")]
+    pub(crate) mastery_scale: Option<i64>,
+    #[serde(rename = "mastery.winter")]
+    pub(crate) mastery_winter: Option<i64>,
+    #[serde(rename = "mastery.knock")]
+    pub(crate) mastery_knock: Option<i64>,
+    #[serde(rename = "mastery.heart")]
+    pub(crate) mastery_heart: Option<i64>,
+    #[serde(rename = "mastery.moth")]
+    pub(crate) mastery_moth: Option<i64>,
+    #[serde(rename = "mastery.moon")]
+    pub(crate) mastery_moon: Option<i64>,
+    #[serde(rename = "mastery.rose")]
+    pub(crate) mastery_rose: Option<i64>,
     pub(crate) knock: Option<i64>,
     pub(crate) rose: Option<i64>,
     #[serde(rename = "wisdom.committed")]

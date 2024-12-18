@@ -1,14 +1,12 @@
 use crate::model::Mastery;
-use crate::model::save::TentacledPayload;
+use crate::model::save::StickyPayload;
 
-impl Mastery for TentacledPayload {
+impl Mastery for StickyPayload {
     fn has_mastery(
         &self,
     ) -> bool {
         let mutations = self.mutations.as_ref().unwrap();
         let mut mutations_mastered = vec![
-            mutations.mastery_edge,
-            mutations.mastery_forge,
             mutations.mastery_grail,
             mutations.mastery_heart,
             mutations.mastery_knock,

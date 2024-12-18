@@ -431,11 +431,20 @@ where
                 .expect("Failed to get game documents")
                 .get_studying_item_from_save_file(&serializable_value);
 
-            if am_i_studying_this.is_ok() {
-                error!(error =? e, "Not printing data for tome being studied!");
-                bail!("Not printing details for tome being studied!");
-            } else {
+            if let Ok(o) = am_i_studying_this {
+                if let true = game_documents
+                    .read()
+                    .expect("Failed to get game documents")
+                    .check_if_tome_mastered(&o) {
+                    unreachable!()
+                } else {
+                    error!(error =? e, "Not printing data for tome being studied!");
+                    bail!("Not printing details for tome being studied!");
+                }
+            } else if let Err(e) = am_i_studying_this {
                 bail!("Failed to resolve query for known or studying item!");
+            } else {
+                unreachable!()
             }
         }
     };

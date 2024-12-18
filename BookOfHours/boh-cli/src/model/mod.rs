@@ -19,6 +19,10 @@ pub trait Identifiable {
     fn inner_id(&self) -> &str;
 }
 
+pub trait Mastery {
+    fn has_mastery(&self) -> bool;
+}
+
 pub trait GameCollectionType {
     fn get_collection_type(&self) -> QueryType;
 }

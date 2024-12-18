@@ -3,7 +3,7 @@ use crate::get_autosave_file;
 use crate::model::aspected_items::AspectedItems;
 use crate::model::aspects::Aspects;
 use crate::model::consider_books::ConsiderBooks;
-use crate::model::Identifiable;
+use crate::model::{Identifiable, Mastery};
 use crate::model::lessons::Lessons;
 use crate::model::save::{Autosave, RootPopulationCommandSphere, StickyPayload, TentacledPayload};
 use crate::model::skills::Skills;
@@ -142,10 +142,12 @@ impl GameDocuments {
         self.autosave.get_studying_item_from_save_file(game_item)
     }
 
-    pub(crate) fn check_if_tome_mastered(
+    pub(crate) fn check_if_tome_mastered<T>(
         &self,
-        game_item: &TentacledPayload
-    ) -> bool {
+        game_item: &T
+    ) -> bool where
+        T: Mastery + Clone + std::fmt::Debug,
+    {
         game_item.has_mastery()
     }
 }
