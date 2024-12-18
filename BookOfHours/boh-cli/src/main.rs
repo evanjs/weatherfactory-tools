@@ -717,12 +717,14 @@ fn main() -> anyhow::Result<()> {
                                         EventKind::Modify(m) => {
                                             match m {
                                                 ModifyKind::Data(_data) => {
-                                                    info!(?event, "Autosave file changed");
-                                                    debug!("Updating game documents");
+                                                    debug!(?event, "Autosave file changed");
+                                                    trace!("Updating game documents");
                                                     if let Err(error) = update_autosave_document(autosave_gd.clone()) {
                                                         warn!("Error when updating autosave document: {:?}", error);
                                                     } else {
-                                                        println!("Autosave document updated successfully");
+                                                        // TODO: consider promoting the log severity
+                                                        //  - when we can more accurately filter events out spammy events
+                                                        debug!("Autosave document updated successfully");
                                                     }
                                                 }
                                             _ => {}
