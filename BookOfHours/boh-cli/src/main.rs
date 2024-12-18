@@ -13,6 +13,7 @@ use rustyline::error::ReadlineError;
 use rustyline::{DefaultEditor, Editor};
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
+use std::thread;
 use notify::{recommended_watcher, Event, RecursiveMode, Watcher};
 
 use crate::model::aspected_items::AspectedItems;
@@ -26,6 +27,7 @@ use crate::model::tomes::Tomes;
 use crate::model::{FindById, GameCollectionType, GameElementDetails, Identifiable};
 use anyhow::{anyhow, bail, Error};
 use clipboard_rs::{Clipboard, ClipboardContext};
+use crossbeam_channel::unbounded;
 use notify::RecursiveMode::Recursive;
 use rustyline::history::DefaultHistory;
 use serde::{Deserialize, Serialize};
@@ -673,26 +675,36 @@ async fn main() -> anyhow::Result<()> {
         confy::get_configuration_file_path(APP_PATH_FULL, Some(APP_CONFIG_FILE_NAME))?;
     let game_documents_arc = init_json_data(&bhcontent_core_path)?;
 
-    let (tx, rx) = std::sync::mpsc::channel::<notify::Result<Event>>();
-    let mut watcher = notify::recommended_watcher(tx)?;
+    // Use the receiver in your loop:
+    let gda = Arc::clone(&game_documents_arc);
+    // Create a crossbeam channel for communicating autosave events
+    let (tx, rx): (crossbeam_channel::Sender<notify::Result<Event>>, crossbeam_channel::Receiver<notify::Result<Event>>) = unbounded();
+
+    let mut watcher = recommended_watcher(tx.clone())?;
     let autosave_path = get_autosave_file()?;
     watcher.watch(std::path::Path::new(&autosave_path), RecursiveMode::NonRecursive)?;
 
-    let gda = Arc::clone(&game_documents_arc);
-    tokio::task::spawn_blocking(move || {
-        for res in rx {
-            match res {
-                Ok(event) => {
-                    println!("autosave file changed: {:?}", event);
-                    println!("Updating game documents");
-                    if let Err(error) = update_autosave_document(gda.clone()) {
-                        error!(?error, "Error encountered when updating autosave document");
+    // Spawn the autosave thread
+    let autosave_handle = thread::spawn({
+        let autosave_gd = Arc::clone(&game_documents_arc);
+        move || {
+            for result in rx.iter() {
+                match result {
+                    Ok(event) => {
+                        println!("autosave file changed: {:?}", event);
+                        println!("Updating game documents");
+                        if let Err(error) = update_autosave_document(autosave_gd.clone()) {
+                            eprintln!("Error when updating autosave document: {:?}", error);
+                        }
                     }
-                },
-                Err(e) => println!("autosave watch error: {:?}", e),
+                    Err(e) => {
+                        println!("autosave watch error: {:?}", e);
+                    }
+                }
             }
+            println!("Autosave thread exiting.");
         }
-    }).await?;
+    });
 
     // Create a rustyline Editor instance
     let mut rl = DefaultEditor::new()?;
@@ -818,6 +830,13 @@ Available modes:
             }
         }
     }
+
+    drop(tx);
+
+    // Wait for the autosave thread to exit
+    autosave_handle
+        .join()
+        .expect("Autosave thread panicked");
 
     maybe_save_history_file(&mut rl, &history_path)?;
 
