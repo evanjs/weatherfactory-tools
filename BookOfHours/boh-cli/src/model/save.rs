@@ -220,6 +220,8 @@ pub enum Effect {
     Midday,
     None,
     Open,
+    Dusk,
+    Hail,
     Setspeed,
 }
 
@@ -848,9 +850,9 @@ pub struct TentacledPayload {
     pub(crate) verb_id: Option<String>,
     pub(crate) output_path: Option<serde_json::Value>,
     // TODO: this might need to be a string
-    pub(crate) current_recipe_id: Option<Id>,
+    pub(crate) current_recipe_id: Option<String>,
     // TODO: this might also need to be a string
-    pub(crate) fallback_recipe_id: Option<Id>,
+    pub(crate) fallback_recipe_id: Option<String>,
     pub(crate) quantity: Option<i64>,
     pub(crate) state_identifier: Option<i64>,
     pub(crate) time_remaining: Option<f64>,
@@ -1363,7 +1365,7 @@ pub struct LastRunRecipe {
     pub(crate) pre_slots: Option<Vec<Option<serde_json::Value>>>,
     pub(crate) slots: Option<Vec<Option<serde_json::Value>>>,
     pub(crate) internal_deck: Option<InternalDeck>,
-    pub(crate) id: Option<Id>,
+    pub(crate) id: Option<String>,
     pub(crate) lever: Option<String>,
 }
 
@@ -1538,7 +1540,7 @@ pub struct LockedInRecipe {
     pub(crate) pre_slots: Option<Vec<Option<serde_json::Value>>>,
     pub(crate) slots: Option<Vec<Option<serde_json::Value>>>,
     pub(crate) internal_deck: Option<InternalDeck>,
-    pub(crate) id: Option<Id>,
+    pub(crate) id: Option<String>,
     pub(crate) lever: Option<String>,
 }
 

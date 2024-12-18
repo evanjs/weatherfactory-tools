@@ -12,7 +12,8 @@ use encoding_rs::{UTF_16LE, UTF_8};
 use rustyline::error::ReadlineError;
 use rustyline::{DefaultEditor, Editor};
 use std::path::PathBuf;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
+use notify::{recommended_watcher, Event, RecursiveMode, Watcher};
 
 use crate::model::aspected_items::AspectedItems;
 use crate::model::aspects::Aspects;
@@ -25,6 +26,7 @@ use crate::model::tomes::Tomes;
 use crate::model::{FindById, GameCollectionType, GameElementDetails, Identifiable};
 use anyhow::{anyhow, bail, Error};
 use clipboard_rs::{Clipboard, ClipboardContext};
+use notify::RecursiveMode::Recursive;
 use rustyline::history::DefaultHistory;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -293,7 +295,7 @@ fn get_queries(mode: &str, query: &str) -> anyhow::Result<Queries> {
 /// ```
 #[tracing::instrument(skip(game_documents, wrapper))]
 fn execute_query<W>(
-    game_documents: Arc<GameDocuments>,
+    game_documents: Arc<RwLock<GameDocuments>>,
     wrapper: W,
     query: &str,
     query_type: QueryType,
@@ -389,7 +391,7 @@ fn print_separator() {
 /// ```
 #[tracing::instrument(skip(game_documents, serializable_value))]
 fn copy_and_print<U>(
-    game_documents: Arc<GameDocuments>,
+    game_documents: Arc<RwLock<GameDocuments>>,
     serializable_value: U,
     query_type: QueryType,
     verbose_output: bool,
@@ -397,8 +399,6 @@ fn copy_and_print<U>(
 where
     U: Serialize + GameElementDetails + Identifiable + Clone + Debug,
 {
-    let game_docs = game_documents.clone();
-
     let label = serializable_value.get_label();
     let description = serializable_value.get_desc();
 
@@ -409,11 +409,21 @@ where
 
     copy_if_clipboard_found(combined);
 
-    let has_been_manifested = game_docs.check_if_item_manifested(&serializable_value)?;
+    let has_been_manifested = game_documents
+        .read()
+        .expect("Failed to get game documents")
+        .check_if_item_manifested(&serializable_value)?;
     println!("Already manifested? {}", has_been_manifested);
 
-    let item_from_save_file = game_docs.get_item_from_save_file(&serializable_value)?;
-    let have_i_mastered_this = game_docs.check_if_tome_mastered(&item_from_save_file);
+    let item_from_save_file = game_documents
+        .read()
+        .expect("Failed to get game documents")
+        .get_item_from_save_file(&serializable_value)?;
+
+    let have_i_mastered_this = game_documents
+        .read()
+        .expect("Failed to get game documents")
+        .check_if_tome_mastered(&item_from_save_file);
     debug!(
         ?item_from_save_file,
         "Found item from save file"
@@ -444,9 +454,6 @@ where
         }
     }
 
-
-
-
     // print each extra item
     if !serializable_value.get_extra().is_empty() {
         for (extra_key, extra_value) in serializable_value
@@ -454,7 +461,9 @@ where
             .iter()
             .filter(|(k, v)| k.contains("mastering"))
         {
-            let lesson_id = game_docs
+            let lesson_id = game_documents
+                .read()
+                .expect("Failed to get game documents")
                 .lessons
                 .get_lesson_string(extra_value)
                 .unwrap_or_else(|| panic!("Failed to get lesson using ID: {extra_key}"));
@@ -465,13 +474,17 @@ where
             .iter()
             .filter(|(k, v)| k.contains("reading"))
         {
-            let memory_id = game_docs
+            let memory_id = game_documents
+                .read()
+                .expect("Failed to get game documents")
                 .aspected_items
                 .get_memory_string(aspected_item_value)
                 .unwrap_or_else(|| panic!("Failed to get memory using ID: {aspected_item_key}"));
             println!("{}", memory_id);
 
-            game_docs
+            game_documents
+                .read()
+                .expect("Failed to get game documents")
                 .aspected_items
                 .get_aspects(aspected_item_value)
                 .unwrap_or_else(|| panic!("Failed to get aspect using ID: {aspected_item_key}"))
@@ -539,7 +552,7 @@ fn process_mode(
     query: &str,
     verbose_output: bool,
     query_type: QueryType,
-    shared_game_documents: Arc<GameDocuments>,
+    shared_game_documents: Arc<RwLock<GameDocuments>>,
 ) -> anyhow::Result<()> {
     let queries = match get_queries(mode, query) {
         Ok(q) => q,
@@ -560,7 +573,7 @@ fn process_mode(
     match query_type {
         QueryType::Tomes => {
             trace!(?query_type, "Attempting to get tomes from query");
-            let val = game_documents.tomes.clone();
+            let val = game_documents.read().unwrap().tomes.clone();
             execute_query::<Tomes>(
                 shared_game_documents.clone(),
                 val,
@@ -571,7 +584,7 @@ fn process_mode(
         }
         QueryType::Skills => {
             trace!(?query_type, "Attempting to get skills from query");
-            let val = game_documents.skills.clone();
+            let val = game_documents.read().unwrap().skills.clone();
             execute_query::<Skills>(
                 shared_game_documents.clone(),
                 val,
@@ -582,7 +595,7 @@ fn process_mode(
         }
         QueryType::Aspects => {
             trace!(?query_type, "Attempting to get aspects from query");
-            let val = game_documents.aspects.clone();
+            let val = game_documents.read().unwrap().aspects.clone();
             execute_query::<Aspects>(
                 shared_game_documents.clone(),
                 val,
@@ -602,7 +615,7 @@ fn process_mode(
         }
         QueryType::AspectedItems => {
             trace!(?query_type, "Attempting to get aspected items from query");
-            let val = game_documents.aspected_items.clone();
+            let val = game_documents.read().unwrap().aspected_items.clone();
             execute_query::<AspectedItems>(
                 shared_game_documents.clone(),
                 val,
@@ -613,7 +626,7 @@ fn process_mode(
         }
         QueryType::ConsiderBooks => {
             trace!(?query_type, "Attempting to get consider books from query");
-            let val = game_documents.consider_books.clone();
+            let val = game_documents.read().unwrap().consider_books.clone();
             execute_query::<ConsiderBooks>(
                 shared_game_documents.clone(),
                 val,
@@ -627,7 +640,8 @@ fn process_mode(
 }
 
 // Main function with rustyline integration
-fn main() -> anyhow::Result<()> {
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
     dotenvy::dotenv().map_err(|_e| {
         debug!(
             name: "startup",
@@ -659,7 +673,26 @@ fn main() -> anyhow::Result<()> {
         confy::get_configuration_file_path(APP_PATH_FULL, Some(APP_CONFIG_FILE_NAME))?;
     let game_documents_arc = init_json_data(&bhcontent_core_path)?;
 
-    //let unique_items = save::get_unique_items(&game_documents_arc.autosave)?;
+    let (tx, rx) = std::sync::mpsc::channel::<notify::Result<Event>>();
+    let mut watcher = notify::recommended_watcher(tx)?;
+    let autosave_path = get_autosave_file()?;
+    watcher.watch(std::path::Path::new(&autosave_path), RecursiveMode::NonRecursive)?;
+
+    let gda = Arc::clone(&game_documents_arc);
+    tokio::task::spawn_blocking(move || {
+        for res in rx {
+            match res {
+                Ok(event) => {
+                    println!("autosave file changed: {:?}", event);
+                    println!("Updating game documents");
+                    if let Err(error) = update_autosave_document(gda.clone()) {
+                        error!(?error, "Error encountered when updating autosave document");
+                    }
+                },
+                Err(e) => println!("autosave watch error: {:?}", e),
+            }
+        }
+    }).await?;
 
     // Create a rustyline Editor instance
     let mut rl = DefaultEditor::new()?;
@@ -672,6 +705,7 @@ fn main() -> anyhow::Result<()> {
 
     maybe_init_history_file(&mut rl, &history_path)?;
 
+    let main_gd = Arc::clone(&game_documents_arc);
     'repl: loop {
         let current_mode_string = format!("{} > ", mode);
         let readline_string = if mode.is_empty() {
@@ -763,7 +797,7 @@ Available modes:
                                         continue;
                                     }
                                 },
-                                game_documents_arc.clone(),
+                                Arc::clone(&main_gd),
                             ) {
                                 Ok(_) => info!("Command processed: {}", query),
                                 Err(error) => {
@@ -787,6 +821,14 @@ Available modes:
 
     maybe_save_history_file(&mut rl, &history_path)?;
 
+    Ok(())
+}
+
+fn update_autosave_document(game_documents: Arc<RwLock<GameDocuments>>) -> anyhow::Result<()> {
+    let autosave_path = get_autosave_file()?;
+    let autosave_data = crate::load_autosave(autosave_path)?;
+
+    game_documents.write().expect("Failed to get write lock for game documents").autosave = autosave_data;
     Ok(())
 }
 
@@ -896,7 +938,7 @@ fn deserialize_json_with_arbitrary_encoding(file_path: &PathBuf) -> anyhow::Resu
 /// let base_directory_path: &PathBuf = "path_to_core_directory".into();
 /// let shared_game_documents = init_json_data(base_directory_path)?;
 /// ```
-fn init_json_data(base_directory: &PathBuf) -> anyhow::Result<Arc<GameDocuments>> {
+fn init_json_data(base_directory: &PathBuf) -> anyhow::Result<Arc<RwLock<GameDocuments>>> {
     let game = GameDocuments::new_using_data_path(base_directory)?;
-    Ok(Arc::new(game))
+    Ok(Arc::new(RwLock::new(game)))
 }
