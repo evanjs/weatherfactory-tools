@@ -86,7 +86,7 @@ impl FindById for AspectedItems {
 
 impl From<Value> for AspectedItems {
     fn from(value: Value) -> Self {
-        serde_json_path_to_error::from_value(value).unwrap()
+        serde_json::from_value(value).unwrap()
     }
 }
 

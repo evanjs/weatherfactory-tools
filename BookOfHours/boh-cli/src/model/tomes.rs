@@ -171,7 +171,7 @@ impl FindById for Tomes {
 
 impl From<Value> for Tomes {
     fn from(value: Value) -> Self {
-        serde_json_path_to_error::from_value(value).unwrap()
+        serde_json::from_value(value).unwrap()
     }
 }
 

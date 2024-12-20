@@ -101,7 +101,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_json_lenient",
- "serde_json_path_to_error",
+ "serde_path_to_error",
  "serde_with",
  "signal-hook",
  "strum",
@@ -1145,17 +1145,6 @@ dependencies = [
  "memchr",
  "ryu",
  "serde",
-]
-
-[[package]]
-name = "serde_json_path_to_error"
-version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d7f2c2432eb04d880635fbf5d45cd5e619aeca7d4aff62cc1699671512db7d53"
-dependencies = [
- "serde",
- "serde_json",
- "serde_path_to_error",
 ]
 
 [[package]]

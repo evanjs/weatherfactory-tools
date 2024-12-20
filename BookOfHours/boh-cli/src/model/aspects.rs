@@ -82,7 +82,7 @@ impl FindById for Aspects {
 
 impl From<Value> for Aspects {
     fn from(value: Value) -> Self {
-        serde_json_path_to_error::from_value(value).expect("Failed to parse Aspects value")
+        serde_json::from_value(value).expect("Failed to parse Aspects value")
     }
 }
 

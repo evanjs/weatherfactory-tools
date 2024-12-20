@@ -2,7 +2,7 @@ use crate::model::save::{
     Autosave, PayloadType, StickyPayload, TentacledPayload,
 };
 use crate::model::Identifiable;
-use anyhow::Ok;
+use anyhow::{anyhow, Ok};
 use anyhow::bail;
 use either::Either;
 use std::fmt::Debug;
@@ -36,70 +36,49 @@ impl Autosave {
 
         trace!(?game_item, "Getting item from save file");
 
-        if let Some(root_population_command) = self.root_population_command.as_ref() {
-            if let Some(spheres) = &root_population_command.spheres {
-                // Find the sphere containing the item
-                for sphere in spheres {
-                    if let Some(tokens) = &sphere.tokens {
-                        for token in tokens {
-                            if let Some(payload) = &token.payload {
-                                if let Some(dominions) = &payload.dominions {
-                                    for dominion in dominions {
-                                        if let Some(dspheres) = &dominion.spheres {
-                                            for dsphere in dspheres {
-                                                for dtokens in &dsphere.tokens {
-                                                    for dtoken in dtokens {
-                                                        if let Some(dpayload) =
-                                                            dtoken.payload.as_ref()
-                                                        {
-                                                            if dpayload.payload_type == PayloadType::ElementStackCreationCommand {
-                                                                if let Some(dpayload_id) = &dpayload.id {
-                                                                    trace!(
-                                                                        payload_id =? dpayload_id,
-                                                                        game_item_id =? game_item.inner_id(),
-                                                                        "Checking if payload contains item"
-                                                                    );
-                                                                    if dpayload_id
-                                                                        .to_ascii_lowercase()
-                                                                        .contains(game_item
-                                                                            .inner_id()
-                                                                            .to_ascii_lowercase()
-                                                                            .as_str())
-                                                                    {
-                                                                        // Return the matching innermost payload
-                                                                        return Ok(dpayload.clone());
-                                                                    }
-                                                                }
-                                                            } else {
-                                                                trace!(
-                                                                    dpayload =? dpayload.id,
-                                                                    "Payload type is not ElementStackCreationCommand"
-                                                                );
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
+
+        // Find the sphere containing the item
+        for root_population_command_sphere in &self.root_population_command.spheres {
+            for fluffy_token in &root_population_command_sphere.tokens {
+                for purple_dominion in &fluffy_token.payload.dominions {
+                    for purple_sphere in &purple_dominion.spheres {
+                        for tentacled_token in &purple_sphere.tokens {
+                            let payload = &tentacled_token.payload;
+                            if tentacled_token.payload.payload_type == PayloadType::ElementStackCreationCommand {
+                                trace!(
+                                    payload_id =? payload.id,
+                                    game_item_id =? game_item.inner_id(),
+                                    "Checking if payload contains item"
+                                );
+                                if payload.id
+                                    .to_ascii_lowercase()
+                                    .contains(game_item
+                                        .inner_id()
+                                        .to_ascii_lowercase()
+                                        .as_str())
+                                {
+                                    // Return the matching innermost payload
+                                    return Ok(tentacled_token.payload.clone());
                                 }
+                            } else {
+                                trace!(
+                                    dpayload_id=? tentacled_token.payload.id,
+                                    "Payload type is not ElementStackCreationCommand"
+                                );
                             }
                         }
                     }
                 }
-                bail!("Failed to find matching item in any sphere");
-            } else {
-                bail!("Failed to find spheres in root population command");
             }
-        } else {
-            bail!("Failed to find root population command in save file");
         }
+
+        bail!("Could not find item in save file")
     }
 
-    /// Determine whether the provided time is either mastered or currently being studied
-    /// These criteria appear a bit differently in the save file
-    ///
-    /// StickyPayloads are nested more than TentacledPayloads
+/// Determine whether the provided time is either mastered or currently being studied
+/// These criteria appear a bit differently in the save file
+///
+/// StickyPayloads are nested more than TentacledPayloads
     ///
     /// # Arguments
     ///
@@ -148,102 +127,61 @@ impl Autosave {
 
         trace!(?game_item, "Getting item from save file");
 
-        if let Some(root_population_command) = self.root_population_command.as_ref() {
-            if let Some(spheres) = &root_population_command.spheres {
-                // Find the sphere containing the item
-                for sphere in spheres {
-                    if let Some(tokens) = &sphere.tokens {
-                        for token in tokens {
-                            if let Some(payload) = &token.payload {
-                                if let Some(dominions) = &payload.dominions {
-                                    for dominion in dominions {
-                                        if let Some(dspheres) = &dominion.spheres {
-                                            for dsphere in dspheres {
-                                                for dtokens in &dsphere.tokens {
-                                                    for dtoken in dtokens {
-                                                        if let Some(dpayload) =
-                                                            dtoken.payload.as_ref()
-                                                        {
-                                                            if dpayload.payload_type == PayloadType::SituationCreationCommand {
-                                                                if let Some(ddominions) = &dpayload.dominions {
-                                                                    for ddominion in ddominions {
-                                                                        if let Some(ddspheres) = &ddominion.spheres {
-                                                                            for ddsphere in ddspheres {
-                                                                                for ddtokens in &ddsphere.tokens {
-                                                                                    for ddtoken in ddtokens {
-                                                                                        if let Some(ddpayload) = ddtoken.payload.as_ref() {
-                                                                                            if let Some(ddpayload_id) = &ddpayload.id {
-                                                                                                trace!(
-                                                                                                    payload_id =? ddpayload_id,
-                                                                                                    game_item_id =? game_item.inner_id(),
-                                                                                                    "Checking if payload contains item"
-                                                                                                );
-                                                                                                if ddpayload_id
-                                                                                                    .to_ascii_lowercase()
-                                                                                                    .contains(game_item
-                                                                                                        .inner_id()
-                                                                                                        .to_ascii_lowercase()
-                                                                                                        .as_str())
-                                                                                                {
-                                                                                                    // Return the matching innermost payload
-                                                                                                    return Ok(ddpayload.clone());
-                                                                                                }
-                                                                                            }
-                                                                                        }
-                                                                                    }
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-                                                            } else {
-                                                                trace!(
-                                                                    dpayload =? dpayload.id,
-                                                                    "Payload type is not ElementStackCreationCommand"
-                                                                );
-                                                            }
-                                                        }
-                                                    }
-                                                }
+        // Find the sphere containing the item
+        for root_population_command_sphere in &self.root_population_command.spheres {
+            for fluffy_token in &root_population_command_sphere.tokens {
+                for purple_dominion in &fluffy_token.payload.dominions {
+                    for purple_sphere in &purple_dominion.spheres {
+                        for tentacled_token in &purple_sphere.tokens {
+                            if tentacled_token.payload.payload_type == PayloadType::SituationCreationCommand {
+                                for fluffy_dominion in &tentacled_token.payload.dominions {
+                                    for fluffy_sphere in &fluffy_dominion.spheres {
+                                        for sticky_token in &fluffy_sphere.tokens {
+                                            trace!(
+                                                payload_id =? sticky_token.payload.id,
+                                                game_item_id =? game_item.inner_id(),
+                                                "Checking if payload contains item"
+                                            );
+                                            if sticky_token.payload.id
+                                                .to_ascii_lowercase()
+                                                .contains(game_item
+                                                    .inner_id()
+                                                    .to_ascii_lowercase()
+                                                    .as_str())
+                                            {
+                                                // Return the matching innermost payload
+                                                return Ok(sticky_token.payload.clone());
                                             }
                                         }
                                     }
                                 }
+                            }  else {
+                                trace!(
+                                    dpayload_id =? tentacled_token.payload.id,
+                                    dpayload_type =? tentacled_token.payload.payload_type,
+                                    "Payload type is not ElementStackCreationCommand"
+                                );
                             }
                         }
                     }
                 }
-                bail!("Failed to find matching item in any sphere");
-            } else {
-                bail!("Failed to find spheres in root population command");
             }
-        } else {
-            bail!("Failed to find root population command in save file");
         }
+
+        bail!("Could not find item in save file")
     }
 
-    pub(crate) fn get_unique_items(&self) -> anyhow::Result<Vec<String>> {
-        assert!(
-            self.character_creation_commands.is_some(),
-            "Character creation commands should be present"
-        );
+pub(crate) fn get_unique_items(&self) -> anyhow::Result<Vec<String>> {
+    let character_creation_commands = self
+        .clone()
+        .character_creation_commands;
 
-        let character_creation_commands = self
-            .clone()
-            .character_creation_commands
-            .expect("Character creation commands should be present");
+    let unique_items_manifested = &character_creation_commands
+        .first()
+        .expect("Failed to get first item in character creation commands")
+        .unique_elements_manifested;
 
-        let unique_items_manifested = &character_creation_commands
-            .first()
-            .expect("Failed to get first item in character creation commands")
-            .unique_elements_manifested;
-
-        assert!(
-            unique_items_manifested.is_some(),
-            "Unique items should be present"
-        );
-
-        let unique_items = unique_items_manifested.as_ref().unwrap();
+        let unique_items = unique_items_manifested;
 
         Ok(unique_items.to_vec())
     }

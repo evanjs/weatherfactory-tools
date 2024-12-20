@@ -61,6 +61,20 @@ enum QueryType {
     ConsiderBooks,
 }
 
+pub(crate) fn try_parse_json_data<'a, T>(json_data: &'a str) -> anyhow::Result<T> 
+where 
+    T: serde::Deserialize<'a>
+{
+    let jd = &mut serde_json::Deserializer::from_str(json_data);
+    let data = serde_path_to_error::deserialize(jd).map_err(|err| {
+        let path = err.path().to_string();
+        error!("Error path: {:?}", path);
+        anyhow::anyhow!(err)
+    })?;
+    debug!("Successfully parsed json data");
+    Ok(data)
+}
+
 /// Read the game's configuration file
 ///
 /// returns: Result<HashMap<String, String, RandomState>, Error>
@@ -885,7 +899,7 @@ fn load_autosave(autosave_path: PathBuf) -> anyhow::Result<Autosave> {
         .expect("Failed to convert path to string");
     debug!(?autosave_path_str, "Attempting to read autosave file");
     let autosave_contents = read_file_content(autosave_path_str)?;
-    let autosave: Autosave = serde_json::from_str(&autosave_contents)?;
+    let autosave: Autosave = try_parse_json_data(&autosave_contents)?;
 
     Ok(autosave)
 }

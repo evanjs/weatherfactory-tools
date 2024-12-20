@@ -3,8 +3,9 @@ use crate::model::{Identifiable, Mastery};
 
 impl Mastery for StickyPayload {
     fn has_mastery(&self) -> bool {
-        let mutations = self.mutations.as_ref().unwrap();
-        let mutations_mastered = [mutations.mastery_grail,
+        let mutations = &self.mutations;
+        let mutations_mastered = [
+            mutations.mastery_grail,
             mutations.mastery_heart,
             mutations.mastery_knock,
             mutations.mastery_lantern,
@@ -24,10 +25,10 @@ impl Mastery for StickyPayload {
 
 impl Identifiable for StickyPayload {
     fn id(&self) -> &str {
-        self.id.as_ref().unwrap()
+        &self.id
     }
 
     fn inner_id(&self) -> &str {
-        self.entity_id.as_ref().unwrap()
+        &self.entity_id
     }
 }

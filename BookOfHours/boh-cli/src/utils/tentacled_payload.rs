@@ -3,7 +3,7 @@ use crate::model::Mastery;
 
 impl Mastery for TentacledPayload {
     fn has_mastery(&self) -> bool {
-        let mutations = self.mutations.as_ref().unwrap();
+        let mutations = &self.mutations;
         let mutations_mastered = vec![
             mutations.mastery_edge,
             mutations.mastery_forge,

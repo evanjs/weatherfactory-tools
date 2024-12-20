@@ -1,208 +1,209 @@
-use serde::{Deserialize, Serialize};
+use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct Autosave {
     #[serde(rename = "$type")]
-    pub(crate) autosave_type: Option<String>,
-    pub(crate) character_creation_commands: Option<Vec<CharacterCreationCommand>>,
-    pub(crate) root_population_command: Option<RootPopulationCommand>,
-    pub(crate) populate_xamanek_command: Option<PopulateXamanekCommand>,
-    pub(crate) notification_commands: Option<Vec<Option<serde_json::Value>>>,
-    pub(crate) version: Option<Version>,
-    pub(crate) is_fresh: Option<bool>,
+    pub(crate) autosave_type: String,
+    pub(crate) character_creation_commands: Vec<CharacterCreationCommand>,
+    pub(crate) root_population_command: RootPopulationCommand,
+    pub(crate) populate_xamanek_command: PopulateXamanekCommand,
+    pub(crate) notification_commands: Vec<Option<serde_json::Value>>,
+    pub(crate) version: Version,
+    pub(crate) is_fresh: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct CharacterCreationCommand {
     #[serde(rename = "$type")]
-    pub(crate) character_creation_command_type: Option<String>,
-    pub(crate) name: Option<String>,
-    pub(crate) profession: Option<String>,
-    pub(crate) active_legacy_id: Option<String>,
+    pub(crate) character_creation_command_type: String,
+    pub(crate) name: String,
+    pub(crate) profession: String,
+    pub(crate) active_legacy_id: String,
     pub(crate) ending_triggered_id: Option<serde_json::Value>,
-    pub(crate) date_time_created: Option<String>,
-    pub(crate) in_progress_history_records: Option<CurrentItineraries>,
-    pub(crate) previous_character_history_records: Option<PreviousCharacterHistoryRecords>,
-    pub(crate) unique_elements_manifested: Option<Vec<String>>,
-    pub(crate) ambittable_recipes_unlocked: Option<Vec<String>>,
-    pub(crate) created_in_version: Option<Version>,
-    pub(crate) current_focus: Option<CurrentFocus>,
-    pub(crate) current_houses: Option<Vec<String>>,
+    pub(crate) date_time_created: String,
+    pub(crate) in_progress_history_records: CurrentItineraries,
+    pub(crate) previous_character_history_records: PreviousCharacterHistoryRecords,
+    pub(crate) unique_elements_manifested: Vec<String>,
+    pub(crate) ambittable_recipes_unlocked: Vec<String>,
+    pub(crate) created_in_version: Version,
+    pub(crate) current_focus: CurrentFocus,
+    pub(crate) current_houses: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct Version {
     #[serde(rename = "$type")]
-    pub(crate) version_type: Option<String>,
-    pub(crate) version: Option<String>,
+    pub(crate) version_type: String,
+    pub(crate) version: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub struct CurrentFocus {
     #[serde(rename = "$type")]
-    pub(crate) current_focus_type: Option<String>,
-    pub(crate) x: Option<f64>,
-    pub(crate) y: Option<f64>,
-    pub(crate) z: Option<f64>,
+    pub(crate) current_focus_type: String,
+    pub(crate) x: f64,
+    pub(crate) y: f64,
+    pub(crate) z: f64,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CurrentItineraries {
     #[serde(rename = "$type")]
-    pub(crate) current_itineraries_type: Option<String>,
+    pub(crate) current_itineraries_type: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PreviousCharacterHistoryRecords {
     #[serde(rename = "$type")]
-    pub(crate) previous_character_history_records_type: Option<String>,
-    pub(crate) lastcharactername: Option<String>,
+    pub(crate) previous_character_history_records_type: String,
+    pub(crate) lastcharactername: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct PopulateXamanekCommand {
     #[serde(rename = "$type")]
-    pub(crate) populate_xamanek_command_type: Option<String>,
-    pub(crate) current_itineraries: Option<CurrentItineraries>,
-    pub(crate) current_enviro_fx_commands: Option<CurrentEnviroFxCommands>,
-    pub(crate) current_sphere_blocks: Option<Vec<Option<serde_json::Value>>>,
+    pub(crate) populate_xamanek_command_type: String,
+    pub(crate) current_itineraries: CurrentItineraries,
+    pub(crate) current_enviro_fx_commands: CurrentEnviroFxCommands,
+    pub(crate) current_sphere_blocks: Vec<Option<serde_json::Value>>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct CurrentEnviroFxCommands {
     #[serde(rename = "$type")]
-    pub(crate) current_enviro_fx_commands_type: Option<String>,
-    pub(crate) vignette: Option<Atrium>,
-    pub(crate) sky: Option<Atrium>,
-    pub(crate) weather: Option<Atrium>,
-    pub(crate) music: Option<Atrium>,
-    pub(crate) brancrug: Option<Atrium>,
-    pub(crate) season: Option<Atrium>,
-    pub(crate) meta: Option<Atrium>,
-    pub(crate) cucurbitbridge: Option<Atrium>,
-    pub(crate) lodge: Option<Atrium>,
-    pub(crate) secondbeach: Option<Atrium>,
-    pub(crate) gatehouse: Option<Atrium>,
-    pub(crate) watchmanstower1: Option<Atrium>,
-    pub(crate) watchmanstower2: Option<Atrium>,
-    pub(crate) cloister: Option<Atrium>,
-    pub(crate) practicgarden: Option<Atrium>,
-    pub(crate) longtower1: Option<Atrium>,
-    pub(crate) longtower2: Option<Atrium>,
-    pub(crate) entrancehall: Option<Atrium>,
-    pub(crate) scentgarden: Option<Atrium>,
+    pub(crate) current_enviro_fx_commands_type: String,
+    pub(crate) vignette: Atrium,
+    pub(crate) sky: Atrium,
+    pub(crate) weather: Atrium,
+    pub(crate) music: Atrium,
+    pub(crate) brancrug: Atrium,
+    pub(crate) season: Atrium,
+    pub(crate) meta: Atrium,
+    pub(crate) cucurbitbridge: Atrium,
+    pub(crate) lodge: Atrium,
+    pub(crate) secondbeach: Atrium,
+    pub(crate) gatehouse: Atrium,
+    pub(crate) watchmanstower1: Atrium,
+    pub(crate) watchmanstower2: Atrium,
+    pub(crate) cloister: Atrium,
+    pub(crate) practicgarden: Atrium,
+    pub(crate) longtower1: Atrium,
+    pub(crate) longtower2: Atrium,
+    pub(crate) entrancehall: Atrium,
+    pub(crate) scentgarden: Atrium,
     #[serde(rename = "grandascent.g")]
-    pub(crate) grandascent_g: Option<Atrium>,
+    pub(crate) grandascent_g: Atrium,
     #[serde(rename = "grandascent.1")]
-    pub(crate) grandascent_1: Option<Atrium>,
+    pub(crate) grandascent_1: Atrium,
     #[serde(rename = "grandascent.2")]
-    pub(crate) grandascent_2: Option<Atrium>,
-    pub(crate) readingroom: Option<Atrium>,
-    pub(crate) infirmaryg: Option<Atrium>,
-    pub(crate) mazarineroom: Option<Atrium>,
+    pub(crate) grandascent_2: Atrium,
+    pub(crate) readingroom: Atrium,
+    pub(crate) infirmaryg: Atrium,
+    pub(crate) mazarineroom: Atrium,
     #[serde(rename = "infirmary1b")]
-    pub(crate) infirmary1_b: Option<Atrium>,
-    pub(crate) motleytower1: Option<Atrium>,
-    pub(crate) westcottroom: Option<Atrium>,
-    pub(crate) physicgarden: Option<Atrium>,
-    pub(crate) refectory: Option<Atrium>,
+    pub(crate) infirmary1_b: Atrium,
+    pub(crate) motleytower1: Atrium,
+    pub(crate) westcottroom: Atrium,
+    pub(crate) physicgarden: Atrium,
+    pub(crate) refectory: Atrium,
     #[serde(rename = "grandascent.3")]
-    pub(crate) grandascent_3: Option<Atrium>,
-    pub(crate) atrium: Option<Atrium>,
-    pub(crate) fluddgallery: Option<Atrium>,
-    pub(crate) nave: Option<Atrium>,
-    pub(crate) severnchamber: Option<Atrium>,
-    pub(crate) violetchamber: Option<Atrium>,
+    pub(crate) grandascent_3: Atrium,
+    pub(crate) atrium: Atrium,
+    pub(crate) fluddgallery: Atrium,
+    pub(crate) nave: Atrium,
+    pub(crate) severnchamber: Atrium,
+    pub(crate) violetchamber: Atrium,
     #[serde(rename = "infirmary1a")]
-    pub(crate) infirmary1_a: Option<Atrium>,
-    pub(crate) mapchamber: Option<Atrium>,
-    pub(crate) palechamber: Option<Atrium>,
-    pub(crate) motleytower2: Option<Atrium>,
-    pub(crate) servantshall: Option<Atrium>,
-    pub(crate) librarianquarters: Option<Atrium>,
-    pub(crate) stores: Option<Atrium>,
-    pub(crate) backstairs: Option<Atrium>,
-    pub(crate) vestibulumtransitus: Option<Atrium>,
-    pub(crate) kitchen: Option<Atrium>,
-    pub(crate) foundry: Option<Atrium>,
-    pub(crate) gullscryloggia: Option<Atrium>,
-    pub(crate) motleytower3: Option<Atrium>,
-    pub(crate) pantry: Option<Atrium>,
-    pub(crate) gloriousstair: Option<Atrium>,
-    pub(crate) windlitgallery: Option<Atrium>,
-    pub(crate) well: Option<Atrium>,
-    pub(crate) radiantstair: Option<Atrium>,
-    pub(crate) churchtower1: Option<Atrium>,
-    pub(crate) chapterhouse: Option<Atrium>,
-    pub(crate) solarium: Option<Atrium>,
-    pub(crate) welldescent: Option<Atrium>,
-    pub(crate) deepwelldescent: Option<Atrium>,
-    pub(crate) kitchengarden: Option<Atrium>,
-    pub(crate) ballroomduellinghall: Option<Atrium>,
-    pub(crate) nightgallery: Option<Atrium>,
-    pub(crate) gaolbridge: Option<Atrium>,
-    pub(crate) churchtower2: Option<Atrium>,
-    pub(crate) servantsquarters2: Option<Atrium>,
-    pub(crate) chancel: Option<Atrium>,
-    pub(crate) servantsquarters1: Option<Atrium>,
-    pub(crate) gaolyard: Option<Atrium>,
-    pub(crate) staff_room: Option<Atrium>,
-    pub(crate) gaolhall: Option<Atrium>,
-    pub(crate) sacredspring: Option<Atrium>,
-    pub(crate) winecellar: Option<Atrium>,
-    pub(crate) hallofmirrors: Option<Atrium>,
-    pub(crate) gaolkitchen: Option<Atrium>,
-    pub(crate) stairtenebrous: Option<Atrium>,
-    pub(crate) earthcellar: Option<Atrium>,
-    pub(crate) cell_adept: Option<Atrium>,
+    pub(crate) infirmary1_a: Atrium,
+    pub(crate) mapchamber: Atrium,
+    pub(crate) palechamber: Atrium,
+    pub(crate) motleytower2: Atrium,
+    pub(crate) servantshall: Atrium,
+    pub(crate) librarianquarters: Atrium,
+    pub(crate) stores: Atrium,
+    pub(crate) backstairs: Atrium,
+    pub(crate) vestibulumtransitus: Atrium,
+    pub(crate) kitchen: Atrium,
+    pub(crate) foundry: Atrium,
+    pub(crate) gullscryloggia: Atrium,
+    pub(crate) motleytower3: Atrium,
+    pub(crate) pantry: Atrium,
+    pub(crate) gloriousstair: Atrium,
+    pub(crate) windlitgallery: Atrium,
+    pub(crate) well: Atrium,
+    pub(crate) radiantstair: Atrium,
+    pub(crate) churchtower1: Atrium,
+    pub(crate) chapterhouse: Atrium,
+    pub(crate) solarium: Atrium,
+    pub(crate) welldescent: Atrium,
+    pub(crate) deepwelldescent: Atrium,
+    pub(crate) kitchengarden: Atrium,
+    pub(crate) ballroomduellinghall: Atrium,
+    pub(crate) nightgallery: Atrium,
+    pub(crate) gaolbridge: Atrium,
+    pub(crate) churchtower2: Atrium,
+    pub(crate) servantsquarters2: Atrium,
+    pub(crate) chancel: Atrium,
+    pub(crate) servantsquarters1: Atrium,
+    pub(crate) gaolyard: Atrium,
+    pub(crate) staff_room: Atrium,
+    pub(crate) gaolhall: Atrium,
+    pub(crate) sacredspring: Atrium,
+    pub(crate) winecellar: Atrium,
+    pub(crate) hallofmirrors: Atrium,
+    pub(crate) gaolkitchen: Atrium,
+    pub(crate) stairtenebrous: Atrium,
+    pub(crate) earthcellar: Atrium,
+    pub(crate) cell_adept: Atrium,
     #[serde(rename = "earlbrian'sfield")]
-    pub(crate) earlbrian_sfield: Option<Atrium>,
-    pub(crate) gullcolony: Option<Atrium>,
-    pub(crate) hermitcell: Option<Atrium>,
-    pub(crate) gullscrytower1: Option<Atrium>,
+    pub(crate) earlbrian_sfield: Atrium,
+    pub(crate) gullcolony: Atrium,
+    pub(crate) hermitcell: Atrium,
+    pub(crate) gullscrytower1: Atrium,
     #[serde(rename = "smuggler'sden")]
-    pub(crate) smuggler_sden: Option<Atrium>,
-    pub(crate) ourladybeneath: Option<Atrium>,
-    pub(crate) gaolcellar: Option<Atrium>,
-    pub(crate) bells: Option<Atrium>,
-    pub(crate) spire: Option<Atrium>,
-    pub(crate) gullscrytower2: Option<Atrium>,
-    pub(crate) loadingdock: Option<Atrium>,
-    pub(crate) gullscrytower3: Option<Atrium>,
-    pub(crate) upperpumproom: Option<Atrium>,
-    pub(crate) oubliette: Option<Atrium>,
-    pub(crate) boathouse: Option<Atrium>,
-    pub(crate) rowenarium: Option<Atrium>,
-    pub(crate) whisperingstair: Option<Atrium>,
-    pub(crate) hiddenstair: Option<Atrium>,
-    pub(crate) crucibletower1: Option<Atrium>,
-    pub(crate) salon: Option<Atrium>,
-    pub(crate) run: Option<Atrium>,
-    pub(crate) crucibletower2: Option<Atrium>,
-    pub(crate) lowerpumproom: Option<Atrium>,
-    pub(crate) seacaves: Option<Atrium>,
-    pub(crate) hallofvoices: Option<Atrium>,
-    pub(crate) crucibletower3: Option<Atrium>,
-    pub(crate) silvervault: Option<Atrium>,
-    pub(crate) columbiccrypt: Option<Atrium>,
-    pub(crate) catacombs: Option<Atrium>,
+    pub(crate) smuggler_sden: Atrium,
+    pub(crate) ourladybeneath: Atrium,
+    pub(crate) gaolcellar: Atrium,
+    pub(crate) bells: Atrium,
+    pub(crate) spire: Atrium,
+    pub(crate) gullscrytower2: Atrium,
+    pub(crate) loadingdock: Atrium,
+    pub(crate) gullscrytower3: Atrium,
+    pub(crate) upperpumproom: Atrium,
+    pub(crate) oubliette: Atrium,
+    pub(crate) boathouse: Atrium,
+    pub(crate) rowenarium: Atrium,
+    pub(crate) whisperingstair: Atrium,
+    pub(crate) hiddenstair: Atrium,
+    pub(crate) crucibletower1: Atrium,
+    pub(crate) salon: Atrium,
+    pub(crate) run: Atrium,
+    pub(crate) crucibletower2: Atrium,
+    pub(crate) lowerpumproom: Atrium,
+    pub(crate) seacaves: Atrium,
+    pub(crate) hallofvoices: Atrium,
+    pub(crate) crucibletower3: Atrium,
+    pub(crate) silvervault: Atrium,
+    pub(crate) columbiccrypt: Atrium,
+    pub(crate) catacombs: Atrium,
+    pub(crate) chapelcalicite: Atrium,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct Atrium {
     #[serde(rename = "$type")]
-    pub(crate) atrium_type: Option<AtriumType>,
-    pub(crate) concern: Option<String>,
-    pub(crate) effect: Option<String>,
-    pub(crate) parameter: Option<String>,
-    pub(crate) get_full_fx: Option<String>,
+    pub(crate) atrium_type: AtriumType,
+    pub(crate) concern: String,
+    pub(crate) effect: String,
+    pub(crate) parameter: String,
+    pub(crate) get_full_fx: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -261,20 +262,20 @@ pub enum Effect {
 #[serde(rename_all = "PascalCase")]
 pub struct RootPopulationCommand {
     #[serde(rename = "$type")]
-    pub(crate) root_population_command_type: Option<String>,
-    pub(crate) mutations: Option<RootPopulationCommandMutations>,
-    pub(crate) spheres: Option<Vec<RootPopulationCommandSphere>>,
-    pub(crate) dealers_table: Option<DealersTable>,
-    pub(crate) tokens_at_arbitrary_paths: Option<Vec<Option<serde_json::Value>>>,
+    pub(crate) root_population_command_type: String,
+    pub(crate) mutations: RootPopulationCommandMutations,
+    pub(crate) spheres: Vec<RootPopulationCommandSphere>,
+    pub(crate) dealers_table: DealersTable,
+    pub(crate) tokens_at_arbitrary_paths: Vec<Option<serde_json::Value>>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct DealersTable {
     #[serde(rename = "$type")]
-    pub(crate) dealers_table_type: Option<DealersTableType>,
-    pub(crate) identifier: Option<String>,
-    pub(crate) spheres: Option<Vec<DealersTableSphere>>,
+    pub(crate) dealers_table_type: DealersTableType,
+    pub(crate) identifier: String,
+    pub(crate) spheres: Vec<DealersTableSphere>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -287,46 +288,46 @@ pub enum DealersTableType {
 #[serde(rename_all = "PascalCase")]
 pub struct DealersTableSphere {
     #[serde(rename = "$type")]
-    pub(crate) sphere_type: Option<SphereType>,
+    pub(crate) sphere_type: SphereType,
     pub(crate) owner_sphere_identifier: Option<serde_json::Value>,
-    pub(crate) governing_sphere_spec: Option<PurpleGoverningSphereSpec>,
-    pub(crate) tokens: Option<Vec<PurpleToken>>,
-    pub(crate) shrouded: Option<bool>,
+    pub(crate) governing_sphere_spec: PurpleGoverningSphereSpec,
+    pub(crate) tokens: Vec<PurpleToken>,
+    pub(crate) shrouded: bool,
     pub(crate) persistent_sphere_data: Option<serde_json::Value>,
-    pub(crate) illuminations: Option<CurrentItineraries>,
+    pub(crate) illuminations: CurrentItineraries,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct PurpleGoverningSphereSpec {
     #[serde(rename = "$type")]
-    pub(crate) governing_sphere_spec_type: Option<GoverningSphereSpecType>,
-    pub(crate) label: Option<String>,
-    pub(crate) action_id: Option<String>,
-    pub(crate) description: Option<String>,
-    pub(crate) available_from_house: Option<String>,
-    pub(crate) essential: Option<CurrentItineraries>,
-    pub(crate) required: Option<CurrentItineraries>,
-    pub(crate) forbidden: Option<CurrentItineraries>,
-    pub(crate) if_aspects_present: Option<CurrentItineraries>,
-    pub(crate) greedy: Option<bool>,
-    pub(crate) angels: Option<Vec<Option<serde_json::Value>>>,
-    pub(crate) from_path: Option<Path>,
-    pub(crate) en_route_sphere_path: Option<Path>,
-    pub(crate) windows_sphere_path: Option<Path>,
-    pub(crate) sphere_type: Option<String>,
-    pub(crate) allow_any_token: Option<bool>,
-    pub(crate) id: Option<String>,
-    pub(crate) lever: Option<String>,
+    pub(crate) governing_sphere_spec_type: GoverningSphereSpecType,
+    pub(crate) label: String,
+    pub(crate) action_id: String,
+    pub(crate) description: String,
+    pub(crate) available_from_house: String,
+    pub(crate) essential: CurrentItineraries,
+    pub(crate) required: CurrentItineraries,
+    pub(crate) forbidden: CurrentItineraries,
+    pub(crate) if_aspects_present: CurrentItineraries,
+    pub(crate) greedy: bool,
+    pub(crate) angels: Vec<Option<serde_json::Value>>,
+    pub(crate) from_path: Path,
+    pub(crate) en_route_sphere_path: Path,
+    pub(crate) windows_sphere_path: Path,
+    pub(crate) sphere_type: String,
+    pub(crate) allow_any_token: bool,
+    pub(crate) id: String,
+    pub(crate) lever: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct Path {
     #[serde(rename = "$type")]
-    pub(crate) path_type: Option<EnRouteSpherePathType>,
+    pub(crate) path_type: EnRouteSpherePathType,
     pub(crate) filter: Option<serde_json::Value>,
-    pub(crate) path: Option<String>,
+    pub(crate) path: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -351,35 +352,35 @@ pub enum SphereType {
 #[serde(rename_all = "PascalCase")]
 pub struct PurpleToken {
     #[serde(rename = "$type")]
-    pub(crate) token_type: Option<TokenType>,
-    pub(crate) location: Option<Location>,
+    pub(crate) token_type: TokenType,
+    pub(crate) location: Location,
     pub(crate) home_location: Option<serde_json::Value>,
-    pub(crate) payload: Option<PurplePayload>,
-    pub(crate) placement_already_chronicled: Option<bool>,
-    pub(crate) defunct: Option<bool>,
-    pub(crate) current_state: Option<CurrentItineraries>,
+    pub(crate) payload: PurplePayload,
+    pub(crate) placement_already_chronicled: bool,
+    pub(crate) defunct: bool,
+    pub(crate) current_state: CurrentItineraries,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct Location {
     #[serde(rename = "$type")]
-    pub(crate) location_type: Option<HomeLocationType>,
-    pub(crate) local_position: Box<Option<LocalPosition>>,
-    pub(crate) at_sphere_path: Option<Path>,
+    pub(crate) location_type: LocationType,
+    pub(crate) local_position: Box<LocalPosition>,
+    pub(crate) at_sphere_path: Path,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LocalPosition {
     #[serde(rename = "$type")]
-    pub(crate) local_position_type: Option<LocalPositionType>,
-    pub(crate) x: Option<f64>,
-    pub(crate) y: Option<f64>,
-    pub(crate) z: Option<f64>,
-    pub(crate) magnitude: Option<f64>,
-    pub(crate) sqr_magnitude: Option<f64>,
-    pub(crate) normalized: Box<Option<LocalPosition>>,
+    pub(crate) local_position_type: LocalPositionType,
+    pub(crate) x: f64,
+    pub(crate) y: f64,
+    pub(crate) z: f64,
+    pub(crate) magnitude: f64,
+    pub(crate) sqr_magnitude: f64,
+    pub(crate) normalized: Option<Box<LocalPosition>>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -389,7 +390,7 @@ pub enum LocalPositionType {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub enum HomeLocationType {
+pub enum LocationType {
     #[serde(rename = "SecretHistories.UI.TokenLocation, SecretHistories.Main")]
     SecretHistoriesUiTokenLocationSecretHistoriesMain,
 }
@@ -398,16 +399,16 @@ pub enum HomeLocationType {
 #[serde(rename_all = "PascalCase")]
 pub struct PurplePayload {
     #[serde(rename = "$type")]
-    pub(crate) payload_type: Option<PayloadType>,
-    pub(crate) id: Option<String>,
-    pub(crate) entity_id: Option<String>,
-    pub(crate) quantity: Option<i64>,
-    pub(crate) mutations: Option<CurrentItineraries>,
-    pub(crate) illuminations: Option<CurrentItineraries>,
-    pub(crate) defunct: Option<bool>,
-    pub(crate) is_shrouded: Option<bool>,
-    pub(crate) lifetime_remaining: Option<f64>,
-    pub(crate) dominions: Option<Vec<Option<serde_json::Value>>>,
+    pub(crate) payload_type: PayloadType,
+    pub(crate) id: String,
+    pub(crate) entity_id: String,
+    pub(crate) quantity: i64,
+    pub(crate) mutations: CurrentItineraries,
+    pub(crate) illuminations: CurrentItineraries,
+    pub(crate) defunct: bool,
+    pub(crate) is_shrouded: bool,
+    pub(crate) lifetime_remaining: f64,
+    pub(crate) dominions: Vec<Option<serde_json::Value>>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -432,45 +433,45 @@ pub enum TokenType {
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub struct RootPopulationCommandMutations {
     #[serde(rename = "$type")]
-    pub(crate) mutations_type: Option<String>,
-    pub(crate) ii: Option<i64>,
+    pub(crate) mutations_type: String,
+    pub(crate) ii: i64,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct RootPopulationCommandSphere {
     #[serde(rename = "$type")]
-    pub(crate) sphere_type: Option<SphereType>,
+    pub(crate) sphere_type: SphereType,
     pub(crate) owner_sphere_identifier: Option<serde_json::Value>,
-    pub(crate) governing_sphere_spec: Option<FluffyGoverningSphereSpec>,
-    pub(crate) tokens: Option<Vec<FluffyToken>>,
-    pub(crate) shrouded: Option<bool>,
+    pub(crate) governing_sphere_spec: FluffyGoverningSphereSpec,
+    pub(crate) tokens: Vec<FluffyToken>,
+    pub(crate) shrouded: bool,
     pub(crate) persistent_sphere_data: Option<PersistentSphereData>,
-    pub(crate) illuminations: Option<CurrentItineraries>,
+    pub(crate) illuminations: CurrentItineraries,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct FluffyGoverningSphereSpec {
     #[serde(rename = "$type")]
-    pub(crate) governing_sphere_spec_type: Option<GoverningSphereSpecType>,
-    pub(crate) label: Option<PurpleLabel>,
-    pub(crate) action_id: Option<String>,
-    pub(crate) description: Option<Description>,
-    pub(crate) available_from_house: Option<String>,
-    pub(crate) essential: Option<PurpleEssential>,
-    pub(crate) required: Option<PurpleRequired>,
-    pub(crate) forbidden: Option<PurpleForbidden>,
-    pub(crate) if_aspects_present: Option<CurrentItineraries>,
-    pub(crate) greedy: Option<bool>,
-    pub(crate) angels: Option<Vec<Option<serde_json::Value>>>,
-    pub(crate) from_path: Option<Path>,
-    pub(crate) en_route_sphere_path: Option<Path>,
-    pub(crate) windows_sphere_path: Option<Path>,
-    pub(crate) sphere_type: Option<String>,
-    pub(crate) allow_any_token: Option<bool>,
-    pub(crate) id: Option<String>,
-    pub(crate) lever: Option<String>,
+    pub(crate) governing_sphere_spec_type: GoverningSphereSpecType,
+    pub(crate) label: String,
+    pub(crate) action_id: String,
+    pub(crate) description: String,
+    pub(crate) available_from_house: String,
+    pub(crate) essential: CurrentItineraries,
+    pub(crate) required: PurpleRequired,
+    pub(crate) forbidden: PurpleForbidden,
+    pub(crate) if_aspects_present: CurrentItineraries,
+    pub(crate) greedy: bool,
+    pub(crate) angels: Vec<Option<serde_json::Value>>,
+    pub(crate) from_path: Path,
+    pub(crate) en_route_sphere_path: Path,
+    pub(crate) windows_sphere_path: Path,
+    pub(crate) sphere_type: String,
+    pub(crate) allow_any_token: bool,
+    pub(crate) id: String,
+    pub(crate) lever: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -481,30 +482,21 @@ pub enum Description {
     Empty,
     #[serde(rename = "[Keep things here until you tidy them away.]")]
     KeepThingsHereUntilYouTidyThemAway,
-    #[serde(rename = "#UI_ROOMINPUT_DESCRIPTION#")]
-    UiRoominputDescription,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct PurpleEssential {
-    #[serde(rename = "$type")]
-    pub(crate) essential_type: Option<EssentialType>,
-    pub(crate) assistance: Option<i64>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub enum EssentialType {
-    #[serde(rename = "SecretHistories.Core.AspectsDictionary, SecretHistories.Main")]
-    SecretHistoriesCoreAspectsDictionarySecretHistoriesMain,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PurpleForbidden {
     #[serde(rename = "$type")]
-    pub(crate) forbidden_type: Option<EssentialType>,
+    pub(crate) forbidden_type: ForbiddenType,
     pub(crate) memory: Option<i64>,
     pub(crate) ability: Option<i64>,
     pub(crate) skill: Option<i64>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum ForbiddenType {
+    #[serde(rename = "SecretHistories.Core.AspectsDictionary, SecretHistories.Main")]
+    SecretHistoriesCoreAspectsDictionarySecretHistoriesMain,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -516,44 +508,39 @@ pub enum PurpleLabel {
     Empty,
     #[serde(rename = "SEASONS")]
     Seasons,
-    #[serde(rename = "#UI_ROOMINPUT_LABEL#")]
-    UiRoominputLabel,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PurpleRequired {
     #[serde(rename = "$type")]
-    pub(crate) required_type: Option<EssentialType>,
+    pub(crate) required_type: ForbiddenType,
     pub(crate) ability: Option<i64>,
     pub(crate) skill: Option<i64>,
     pub(crate) memory: Option<i64>,
     pub(crate) lesson: Option<i64>,
     pub(crate) circumstance: Option<i64>,
-    pub(crate) scale: Option<i64>,
-    pub(crate) knock: Option<i64>,
-    pub(crate) edge: Option<i64>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct PersistentSphereData {
     #[serde(rename = "$type")]
-    pub(crate) persistent_sphere_data_type: Option<String>,
-    pub(crate) default_position: Option<f64>,
-    pub(crate) current_position: Option<f64>,
+    pub(crate) persistent_sphere_data_type: String,
+    pub(crate) default_position: f64,
+    pub(crate) current_position: f64,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct FluffyToken {
     #[serde(rename = "$type")]
-    pub(crate) token_type: Option<TokenType>,
-    pub(crate) location: Option<Location>,
+    pub(crate) token_type: TokenType,
+    pub(crate) location: Location,
     pub(crate) home_location: Option<Location>,
-    pub(crate) payload: Option<FluffyPayload>,
-    pub(crate) placement_already_chronicled: Option<bool>,
-    pub(crate) defunct: Option<bool>,
-    pub(crate) current_state: Option<CurrentItineraries>,
+    pub(crate) payload: FluffyPayload,
+    pub(crate) placement_already_chronicled: bool,
+    pub(crate) defunct: bool,
+    pub(crate) current_state: CurrentItineraries,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -561,13 +548,13 @@ pub struct FluffyToken {
 pub struct FluffyPayload {
     #[serde(rename = "$type")]
     pub(crate) payload_type: PayloadType,
-    pub(crate) id: Option<String>,
-    pub(crate) dominions: Option<Vec<PurpleDominion>>,
-    pub(crate) mutations: Option<TentacledMutations>,
+    pub(crate) id: String,
+    pub(crate) dominions: Vec<PurpleDominion>,
+    pub(crate) mutations: FluffyMutations,
     pub(crate) edens_enacted: Option<Vec<EdensEnacted>>,
     pub(crate) is_sealed: Option<bool>,
     pub(crate) is_shrouded: Option<bool>,
-    pub(crate) quantity: Option<i64>,
+    pub(crate) quantity: i64,
     pub(crate) has_previously_unshrouded: Option<bool>,
     pub(crate) last_situation_created: Option<serde_json::Value>,
     pub(crate) verb_id: Option<String>,
@@ -592,9 +579,9 @@ pub struct FluffyPayload {
 #[serde(rename_all = "PascalCase")]
 pub struct PurpleDominion {
     #[serde(rename = "$type")]
-    pub(crate) dominion_type: Option<DealersTableType>,
-    pub(crate) identifier: Option<Identifier>,
-    pub(crate) spheres: Option<Vec<PurpleSphere>>,
+    pub(crate) dominion_type: DealersTableType,
+    pub(crate) identifier: Identifier,
+    pub(crate) spheres: Vec<PurpleSphere>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -622,37 +609,37 @@ pub enum Identifier {
 #[serde(rename_all = "PascalCase")]
 pub struct PurpleSphere {
     #[serde(rename = "$type")]
-    pub(crate) sphere_type: Option<SphereType>,
+    pub(crate) sphere_type: SphereType,
     pub(crate) owner_sphere_identifier: Option<serde_json::Value>,
-    pub(crate) governing_sphere_spec: Option<TentacledGoverningSphereSpec>,
-    pub(crate) tokens: Option<Vec<TentacledToken>>,
-    pub(crate) shrouded: Option<bool>,
+    pub(crate) governing_sphere_spec: TentacledGoverningSphereSpec,
+    pub(crate) tokens: Vec<TentacledToken>,
+    pub(crate) shrouded: bool,
     pub(crate) persistent_sphere_data: Option<serde_json::Value>,
-    pub(crate) illuminations: Option<CurrentItineraries>,
+    pub(crate) illuminations: CurrentItineraries,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct TentacledGoverningSphereSpec {
     #[serde(rename = "$type")]
-    pub(crate) governing_sphere_spec_type: Option<GoverningSphereSpecType>,
-    pub(crate) label: Option<FluffyLabel>,
-    pub(crate) action_id: Option<String>,
-    pub(crate) description: Option<String>,
-    pub(crate) available_from_house: Option<AvailableFromHouse>,
-    pub(crate) essential: Option<FluffyEssential>,
-    pub(crate) required: Option<FluffyRequired>,
-    pub(crate) forbidden: Option<FluffyForbidden>,
-    pub(crate) if_aspects_present: Option<CurrentItineraries>,
-    pub(crate) greedy: Option<bool>,
-    pub(crate) angels: Option<Vec<Option<serde_json::Value>>>,
-    pub(crate) from_path: Option<Path>,
-    pub(crate) en_route_sphere_path: Option<Path>,
-    pub(crate) windows_sphere_path: Option<Path>,
-    pub(crate) sphere_type: Option<String>,
-    pub(crate) allow_any_token: Option<bool>,
-    pub(crate) id: Option<String>,
-    pub(crate) lever: Option<String>,
+    pub(crate) governing_sphere_spec_type: GoverningSphereSpecType,
+    pub(crate) label: String,
+    pub(crate) action_id: String,
+    pub(crate) description: String,
+    pub(crate) available_from_house: AvailableFromHouse,
+    pub(crate) essential: PurpleEssential,
+    pub(crate) required: FluffyRequired,
+    pub(crate) forbidden: FluffyForbidden,
+    pub(crate) if_aspects_present: CurrentItineraries,
+    pub(crate) greedy: bool,
+    pub(crate) angels: Vec<Option<serde_json::Value>>,
+    pub(crate) from_path: Path,
+    pub(crate) en_route_sphere_path: Path,
+    pub(crate) windows_sphere_path: Path,
+    pub(crate) sphere_type: String,
+    pub(crate) allow_any_token: bool,
+    pub(crate) id: String,
+    pub(crate) lever: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -677,9 +664,9 @@ pub enum AvailableFromHouse {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct FluffyEssential {
+pub struct PurpleEssential {
     #[serde(rename = "$type")]
-    pub(crate) essential_type: Option<EssentialType>,
+    pub(crate) essential_type: ForbiddenType,
     pub(crate) skill: Option<i64>,
     pub(crate) finished: Option<i64>,
     #[serde(rename = "incident.box")]
@@ -731,7 +718,7 @@ pub struct FluffyEssential {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct FluffyForbidden {
     #[serde(rename = "$type")]
-    pub(crate) forbidden_type: Option<EssentialType>,
+    pub(crate) forbidden_type: ForbiddenType,
     pub(crate) fixed: Option<i64>,
     #[serde(rename = "record.phonograph")]
     pub(crate) record_phonograph: Option<i64>,
@@ -748,7 +735,6 @@ pub enum FluffyLabel {
     AbandonedAtTheThreshold,
     #[serde(rename = "ABANDONED AT THE WATER'S EDGE")]
     AbandonedAtTheWaterSEdge,
-    Assistance,
     #[serde(rename = "BOOKSHELF")]
     Bookshelf,
     #[serde(rename = "COMFORT")]
@@ -818,7 +804,7 @@ pub enum FluffyLabel {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct FluffyRequired {
     #[serde(rename = "$type")]
-    pub(crate) required_type: Option<EssentialType>,
+    pub(crate) required_type: ForbiddenType,
     pub(crate) thing: Option<i64>,
     pub(crate) wallart: Option<i64>,
     pub(crate) comfort: Option<i64>,
@@ -854,22 +840,19 @@ pub struct FluffyRequired {
     #[serde(rename = "w.nyctodromy")]
     pub(crate) w_nyctodromy: Option<i64>,
     pub(crate) memory: Option<i64>,
-    pub(crate) tally: Option<i64>,
-    #[serde(rename = "skill.language")]
-    pub(crate) skill_language: Option<i64>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct TentacledToken {
     #[serde(rename = "$type")]
-    pub(crate) token_type: Option<TokenType>,
-    pub(crate) location: Option<Location>,
+    pub(crate) token_type: TokenType,
+    pub(crate) location: Location,
     pub(crate) home_location: Option<Location>,
-    pub(crate) payload: Option<TentacledPayload>,
-    pub(crate) placement_already_chronicled: Option<bool>,
-    pub(crate) defunct: Option<bool>,
-    pub(crate) current_state: Option<CurrentItineraries>,
+    pub(crate) payload: TentacledPayload,
+    pub(crate) placement_already_chronicled: bool,
+    pub(crate) defunct: bool,
+    pub(crate) current_state: CurrentItineraries,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -878,19 +861,17 @@ pub struct TentacledPayload {
     #[serde(rename = "$type")]
     pub(crate) payload_type: PayloadType,
     pub(crate) last_situation_created: Option<serde_json::Value>,
-    pub(crate) id: Option<String>,
+    pub(crate) id: String,
     pub(crate) verb_id: Option<String>,
     pub(crate) output_path: Option<serde_json::Value>,
-    // TODO: this might need to be a string
     pub(crate) current_recipe_id: Option<String>,
-    // TODO: this might also need to be a string
     pub(crate) fallback_recipe_id: Option<String>,
-    pub(crate) quantity: Option<i64>,
+    pub(crate) quantity: i64,
     pub(crate) state_identifier: Option<i64>,
     pub(crate) time_remaining: Option<f64>,
-    pub(crate) mutations: Option<FluffyMutations>,
+    pub(crate) mutations: PurpleMutations,
     pub(crate) is_open: Option<bool>,
-    pub(crate) dominions: Option<Vec<FluffyDominion>>,
+    pub(crate) dominions: Vec<FluffyDominion>,
     pub(crate) has_ghost_note: Option<bool>,
     pub(crate) command_queue: Option<Vec<Option<serde_json::Value>>>,
     pub(crate) entity_id: Option<String>,
@@ -902,72 +883,62 @@ pub struct TentacledPayload {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Id {
-    #[serde(rename = "craft.preliminalmeter_confounding.parable_rose")]
-    CraftPreliminalmeterConfoundingParableRose,
-    #[serde(rename = "craft.scholar.sacralimiae_memory_riddle.nameday_moth")]
-    CraftScholarSacralimiaeMemoryRiddleNamedayMoth,
-    #[serde(rename = "craft.stitching.binding_perhibiate_heart")]
-    CraftStitchingBindingPerhibiateHeart,
-    #[serde(rename = "gather.moor.autumn")]
-    GatherMoorAutumn,
     #[serde(rename = "NullRecipe")]
     NullRecipe,
     #[serde(rename = "salon.hint.raw")]
     SalonHintRaw,
-    #[serde(rename = "study.mystery.sky.mastered")]
-    StudyMysterySkyMastered,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct FluffyDominion {
     #[serde(rename = "$type")]
-    pub(crate) dominion_type: Option<DealersTableType>,
-    pub(crate) identifier: Option<Identifier>,
-    pub(crate) spheres: Option<Vec<FluffySphere>>,
+    pub(crate) dominion_type: DealersTableType,
+    pub(crate) identifier: Identifier,
+    pub(crate) spheres: Vec<FluffySphere>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct FluffySphere {
     #[serde(rename = "$type")]
-    pub(crate) sphere_type: Option<SphereType>,
+    pub(crate) sphere_type: SphereType,
     pub(crate) owner_sphere_identifier: Option<serde_json::Value>,
-    pub(crate) governing_sphere_spec: Option<StickyGoverningSphereSpec>,
-    pub(crate) tokens: Option<Vec<StickyToken>>,
-    pub(crate) shrouded: Option<bool>,
+    pub(crate) governing_sphere_spec: StickyGoverningSphereSpec,
+    pub(crate) tokens: Vec<StickyToken>,
+    pub(crate) shrouded: bool,
     pub(crate) persistent_sphere_data: Option<serde_json::Value>,
-    pub(crate) illuminations: Option<CurrentItineraries>,
+    pub(crate) illuminations: CurrentItineraries,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct StickyGoverningSphereSpec {
     #[serde(rename = "$type")]
-    pub(crate) governing_sphere_spec_type: Option<GoverningSphereSpecType>,
-    pub(crate) label: Option<String>,
-    pub(crate) action_id: Option<String>,
-    pub(crate) description: Option<String>,
-    pub(crate) available_from_house: Option<String>,
-    pub(crate) essential: Option<TentacledEssential>,
-    pub(crate) required: Option<TentacledRequired>,
-    pub(crate) forbidden: Option<TentacledForbidden>,
-    pub(crate) if_aspects_present: Option<CurrentItineraries>,
-    pub(crate) greedy: Option<bool>,
-    pub(crate) angels: Option<Vec<Option<serde_json::Value>>>,
-    pub(crate) from_path: Option<Path>,
-    pub(crate) en_route_sphere_path: Option<Path>,
-    pub(crate) windows_sphere_path: Option<Path>,
-    pub(crate) sphere_type: Option<String>,
-    pub(crate) allow_any_token: Option<bool>,
-    pub(crate) id: Option<String>,
-    pub(crate) lever: Option<String>,
+    pub(crate) governing_sphere_spec_type: GoverningSphereSpecType,
+    pub(crate) label: String,
+    pub(crate) action_id: String,
+    pub(crate) description: String,
+    pub(crate) available_from_house: String,
+    pub(crate) essential: FluffyEssential,
+    pub(crate) required: TentacledRequired,
+    pub(crate) forbidden: TentacledForbidden,
+    pub(crate) if_aspects_present: CurrentItineraries,
+    pub(crate) greedy: bool,
+    pub(crate) angels: Vec<Option<serde_json::Value>>,
+    pub(crate) from_path: Path,
+    pub(crate) en_route_sphere_path: Path,
+    pub(crate) windows_sphere_path: Path,
+    pub(crate) sphere_type: String,
+    pub(crate) allow_any_token: bool,
+    pub(crate) id: String,
+    pub(crate) lever: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct TentacledEssential {
+pub struct FluffyEssential {
     #[serde(rename = "$type")]
-    pub(crate) essential_type: Option<EssentialType>,
+    pub(crate) essential_type: ForbiddenType,
     pub(crate) ability: Option<i64>,
     pub(crate) skill: Option<i64>,
     pub(crate) campable: Option<i64>,
@@ -984,7 +955,7 @@ pub struct TentacledEssential {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TentacledForbidden {
     #[serde(rename = "$type")]
-    pub(crate) forbidden_type: Option<EssentialType>,
+    pub(crate) forbidden_type: ForbiddenType,
     pub(crate) fatigued: Option<i64>,
     pub(crate) malady: Option<i64>,
     pub(crate) numatic: Option<i64>,
@@ -998,7 +969,7 @@ pub struct TentacledForbidden {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TentacledRequired {
     #[serde(rename = "$type")]
-    pub(crate) required_type: Option<EssentialType>,
+    pub(crate) required_type: ForbiddenType,
     pub(crate) knock: Option<i64>,
     pub(crate) lantern: Option<i64>,
     pub(crate) heart: Option<i64>,
@@ -1013,9 +984,10 @@ pub struct TentacledRequired {
     pub(crate) ability: Option<i64>,
     pub(crate) soaked: Option<i64>,
     pub(crate) soiled: Option<i64>,
+    pub(crate) scale: Option<i64>,
+    pub(crate) rose: Option<i64>,
     pub(crate) thing: Option<i64>,
     pub(crate) beast: Option<i64>,
-    pub(crate) rose: Option<i64>,
     pub(crate) moon: Option<i64>,
     #[serde(rename = "interest.heart")]
     pub(crate) interest_heart: Option<i64>,
@@ -1027,7 +999,6 @@ pub struct TentacledRequired {
     pub(crate) lens: Option<i64>,
     pub(crate) memory: Option<i64>,
     pub(crate) nectar: Option<i64>,
-    pub(crate) scale: Option<i64>,
     #[serde(rename = "interest.winter")]
     pub(crate) interest_winter: Option<i64>,
     #[serde(rename = "visitor.villager")]
@@ -1040,13 +1011,13 @@ pub struct TentacledRequired {
     pub(crate) carcass: Option<i64>,
     pub(crate) film: Option<i64>,
     pub(crate) moth: Option<i64>,
+    pub(crate) flower: Option<i64>,
+    pub(crate) liquid: Option<i64>,
+    pub(crate) fuel: Option<i64>,
     #[serde(rename = "interest.moth")]
     pub(crate) interest_moth: Option<i64>,
-    pub(crate) flower: Option<i64>,
     pub(crate) root: Option<i64>,
     pub(crate) leaf: Option<i64>,
-    pub(crate) fuel: Option<i64>,
-    pub(crate) liquid: Option<i64>,
     pub(crate) light: Option<i64>,
     #[serde(rename = "interest.grail")]
     pub(crate) interest_grail: Option<i64>,
@@ -1124,35 +1095,41 @@ pub struct TentacledRequired {
 #[serde(rename_all = "PascalCase")]
 pub struct StickyToken {
     #[serde(rename = "$type")]
-    pub(crate) token_type: Option<TokenType>,
-    pub(crate) location: Option<Location>,
-    pub(crate) home_location: Option<Location>,
-    pub(crate) payload: Option<StickyPayload>,
-    pub(crate) placement_already_chronicled: Option<bool>,
-    pub(crate) defunct: Option<bool>,
-    pub(crate) current_state: Option<CurrentItineraries>,
+    pub(crate) token_type: TokenType,
+    pub(crate) location: Location,
+    pub(crate) home_location: Option<serde_json::Value>,
+    pub(crate) payload: StickyPayload,
+    pub(crate) placement_already_chronicled: bool,
+    pub(crate) defunct: bool,
+    pub(crate) current_state: CurrentItineraries,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct StickyPayload {
     #[serde(rename = "$type")]
-    pub(crate) payload_type: Option<PayloadType>,
-    pub(crate) id: Option<String>,
-    pub(crate) entity_id: Option<String>,
-    pub(crate) quantity: Option<i64>,
-    pub(crate) mutations: Option<PurpleMutations>,
-    pub(crate) illuminations: Option<Illuminations>,
-    pub(crate) defunct: Option<bool>,
-    pub(crate) is_shrouded: Option<bool>,
-    pub(crate) lifetime_remaining: Option<f64>,
-    pub(crate) dominions: Option<Vec<Option<serde_json::Value>>>,
+    pub(crate) payload_type: PayloadType,
+    pub(crate) id: String,
+    pub(crate) entity_id: String,
+    pub(crate) quantity: i64,
+    pub(crate) mutations: PurpleMutations,
+    pub(crate) illuminations: Illuminations,
+    pub(crate) defunct: bool,
+    pub(crate) is_shrouded: bool,
+    pub(crate) lifetime_remaining: f64,
+    pub(crate) dominions: Vec<Option<serde_json::Value>>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum EntityId {
+    #[serde(rename = "tlg.note")]
+    TlgNote,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Illuminations {
     #[serde(rename = "$type")]
-    pub(crate) illuminations_type: Option<String>,
+    pub(crate) illuminations_type: String,
     #[serde(rename = "tlg.notes.title")]
     pub(crate) tlg_notes_title: Option<String>,
     #[serde(rename = "tlg.notes.description")]
@@ -1164,47 +1141,7 @@ pub struct Illuminations {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PurpleMutations {
     #[serde(rename = "$type")]
-    pub(crate) mutations_type: Option<String>,
-    pub(crate) sky: Option<i64>,
-    pub(crate) heart: Option<i64>,
-    pub(crate) skill: Option<i64>,
-    #[serde(rename = "mastery.sky")]
-    pub(crate) mastery_sky: Option<i64>,
-    #[serde(rename = "mastery.forge")]
-    pub(crate) mastery_forge: Option<i64>,
-    #[serde(rename = "mastery.grail")]
-    pub(crate) mastery_grail: Option<i64>,
-    #[serde(rename = "mastery.lantern")]
-    pub(crate) mastery_lantern: Option<i64>,
-    #[serde(rename = "mastery.nectar")]
-    pub(crate) mastery_nectar: Option<i64>,
-    #[serde(rename = "mastery.scale")]
-    pub(crate) mastery_scale: Option<i64>,
-    #[serde(rename = "mastery.winter")]
-    pub(crate) mastery_winter: Option<i64>,
-    #[serde(rename = "mastery.knock")]
-    pub(crate) mastery_knock: Option<i64>,
-    #[serde(rename = "mastery.heart")]
-    pub(crate) mastery_heart: Option<i64>,
-    #[serde(rename = "mastery.moth")]
-    pub(crate) mastery_moth: Option<i64>,
-    #[serde(rename = "mastery.moon")]
-    pub(crate) mastery_moon: Option<i64>,
-    #[serde(rename = "mastery.rose")]
-    pub(crate) mastery_rose: Option<i64>,
-    pub(crate) knock: Option<i64>,
-    pub(crate) rose: Option<i64>,
-    #[serde(rename = "wisdom.committed")]
-    pub(crate) wisdom_committed: Option<i64>,
-    #[serde(rename = "w.ithastry")]
-    pub(crate) w_ithastry: Option<i64>,
-    pub(crate) moth: Option<i64>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct FluffyMutations {
-    #[serde(rename = "$type")]
-    pub(crate) mutations_type: Option<String>,
+    pub(crate) mutations_type: String,
     #[serde(rename = "mastery.heart")]
     pub(crate) mastery_heart: Option<i64>,
     #[serde(rename = "mastery.moon")]
@@ -1227,12 +1164,12 @@ pub struct FluffyMutations {
     pub(crate) mastery_forge: Option<i64>,
     #[serde(rename = "mastery.grail")]
     pub(crate) mastery_grail: Option<i64>,
-    #[serde(rename = "mastery.lantern")]
-    pub(crate) mastery_lantern: Option<i64>,
     #[serde(rename = "mastery.nectar")]
     pub(crate) mastery_nectar: Option<i64>,
     #[serde(rename = "mastery.sky")]
     pub(crate) mastery_sky: Option<i64>,
+    #[serde(rename = "mastery.lantern")]
+    pub(crate) mastery_lantern: Option<i64>,
     #[serde(rename = "mastery.scale")]
     pub(crate) mastery_scale: Option<i64>,
     #[serde(rename = "tx.fraser")]
@@ -1293,6 +1230,8 @@ pub struct FluffyMutations {
     pub(crate) address_arthur: Option<i64>,
     #[serde(rename = "address.aladim")]
     pub(crate) address_aladim: Option<i64>,
+    #[serde(rename = "contamination.curse.fifth.eye")]
+    pub(crate) contamination_curse_fifth_eye: Option<i64>,
     #[serde(rename = "acted.arthur.revolution.edge")]
     pub(crate) acted_arthur_revolution_edge: Option<i64>,
     #[serde(rename = "acted.fraser.project.solar.lantern")]
@@ -1371,56 +1310,56 @@ pub enum EdensEnacted {
 #[serde(rename_all = "PascalCase")]
 pub struct LastRunRecipe {
     #[serde(rename = "$type")]
-    pub(crate) last_run_recipe_type: Option<LastRunRecipeType>,
-    pub(crate) priority: Option<i64>,
-    pub(crate) action_id: Option<ActionId>,
-    pub(crate) blocks: Option<bool>,
-    pub(crate) reqs: Option<Reqs>,
-    pub(crate) extant_reqs: Option<CurrentItineraries>,
-    pub(crate) greq: Option<CurrentItineraries>,
-    pub(crate) ngreq: Option<CurrentItineraries>,
+    pub(crate) last_run_recipe_type: LastRunRecipeType,
+    pub(crate) priority: i64,
+    pub(crate) action_id: ActionId,
+    pub(crate) blocks: bool,
+    pub(crate) reqs: Reqs,
+    pub(crate) extant_reqs: CurrentItineraries,
+    pub(crate) greq: CurrentItineraries,
+    pub(crate) ngreq: CurrentItineraries,
     #[serde(rename = "FXReqs")]
-    pub(crate) fx_reqs: Option<CurrentItineraries>,
-    pub(crate) seeking: Option<CurrentItineraries>,
-    pub(crate) effects: Option<Effects>,
-    pub(crate) x_pans: Option<CurrentItineraries>,
+    pub(crate) fx_reqs: CurrentItineraries,
+    pub(crate) seeking: CurrentItineraries,
+    pub(crate) effects: Effects,
+    pub(crate) x_pans: CurrentItineraries,
     #[serde(rename = "FX")]
-    pub(crate) fx: Option<CurrentItineraries>,
-    pub(crate) aspects: Option<Aspects>,
-    pub(crate) mutations: Option<Vec<Option<serde_json::Value>>>,
-    pub(crate) purge: Option<CurrentItineraries>,
-    pub(crate) halt_verb: Option<CurrentItineraries>,
-    pub(crate) delete_verb: Option<CurrentItineraries>,
-    pub(crate) achievements: Option<Vec<Option<serde_json::Value>>>,
-    pub(crate) signal_important_loop: Option<bool>,
+    pub(crate) fx: CurrentItineraries,
+    pub(crate) aspects: Aspects,
+    pub(crate) mutations: Vec<Option<serde_json::Value>>,
+    pub(crate) purge: CurrentItineraries,
+    pub(crate) halt_verb: CurrentItineraries,
+    pub(crate) delete_verb: CurrentItineraries,
+    pub(crate) achievements: Vec<Option<serde_json::Value>>,
+    pub(crate) signal_important_loop: bool,
     pub(crate) audio_one_shot: Option<serde_json::Value>,
-    pub(crate) signal_ending_flavour: Option<i64>,
-    pub(crate) craftable: Option<bool>,
-    pub(crate) notable: Option<bool>,
-    pub(crate) hint_only: Option<bool>,
-    pub(crate) ambittable: Option<bool>,
-    pub(crate) warmup: Option<i64>,
-    pub(crate) inherits: Option<String>,
-    pub(crate) preface: Option<String>,
-    pub(crate) start_label: Option<StartLabel>,
-    pub(crate) label: Option<Label>,
-    pub(crate) start_description: Option<Label>,
-    pub(crate) desc: Option<String>,
-    pub(crate) comments: Option<String>,
-    pub(crate) deck_effects: Option<CurrentItineraries>,
-    pub(crate) alt: Option<Vec<Option<serde_json::Value>>>,
-    pub(crate) lalt: Option<Vec<Option<serde_json::Value>>>,
-    pub(crate) inductions: Option<Vec<Option<serde_json::Value>>>,
-    pub(crate) linked: Option<Vec<Option<serde_json::Value>>>,
-    pub(crate) ending: Option<String>,
-    pub(crate) icon: Option<Icon>,
+    pub(crate) signal_ending_flavour: i64,
+    pub(crate) craftable: bool,
+    pub(crate) notable: bool,
+    pub(crate) hint_only: bool,
+    pub(crate) ambittable: bool,
+    pub(crate) warmup: i64,
+    pub(crate) inherits: String,
+    pub(crate) preface: String,
+    pub(crate) start_label: String,
+    pub(crate) label: String,
+    pub(crate) start_description: String,
+    pub(crate) desc: String,
+    pub(crate) comments: String,
+    pub(crate) deck_effects: CurrentItineraries,
+    pub(crate) alt: Vec<Option<serde_json::Value>>,
+    pub(crate) lalt: Vec<Option<serde_json::Value>>,
+    pub(crate) inductions: Vec<Option<serde_json::Value>>,
+    pub(crate) linked: Vec<Option<serde_json::Value>>,
+    pub(crate) ending: String,
+    pub(crate) icon: String,
     pub(crate) burn_image: Option<serde_json::Value>,
-    pub(crate) run: Option<String>,
-    pub(crate) pre_slots: Option<Vec<Option<serde_json::Value>>>,
-    pub(crate) slots: Option<Vec<Option<serde_json::Value>>>,
-    pub(crate) internal_deck: Option<InternalDeck>,
+    pub(crate) run: String,
+    pub(crate) pre_slots: Vec<Option<serde_json::Value>>,
+    pub(crate) slots: Vec<Option<serde_json::Value>>,
+    pub(crate) internal_deck: InternalDeck,
     pub(crate) id: Option<String>,
-    pub(crate) lever: Option<String>,
+    pub(crate) lever: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -1433,7 +1372,7 @@ pub enum ActionId {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Aspects {
     #[serde(rename = "$type")]
-    pub(crate) aspects_type: Option<EssentialType>,
+    pub(crate) aspects_type: ForbiddenType,
     #[serde(rename = "nx.helping")]
     pub(crate) nx_helping: Option<i64>,
     #[serde(rename = "inspiring.fear.nowhere")]
@@ -1447,7 +1386,7 @@ pub struct Aspects {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Effects {
     #[serde(rename = "$type")]
-    pub(crate) effects_type: Option<String>,
+    pub(crate) effects_type: String,
     #[serde(rename = "spencer.enroute.out")]
     pub(crate) spencer_enroute_out: Option<String>,
 }
@@ -1464,20 +1403,20 @@ pub enum Icon {
 #[serde(rename_all = "PascalCase")]
 pub struct InternalDeck {
     #[serde(rename = "$type")]
-    pub(crate) internal_deck_type: Option<InternalDeckType>,
-    pub(crate) default_card: Option<String>,
-    pub(crate) reset_on_exhaustion: Option<bool>,
-    pub(crate) label: Option<String>,
-    pub(crate) desc: Option<String>,
-    pub(crate) cover: Option<Cover>,
-    pub(crate) comments: Option<String>,
-    pub(crate) is_hidden: Option<bool>,
-    pub(crate) draws: Option<i64>,
-    pub(crate) spec: Option<Vec<Option<serde_json::Value>>>,
-    pub(crate) draw_messages: Option<CurrentItineraries>,
-    pub(crate) default_draw_messages: Option<CurrentItineraries>,
+    pub(crate) internal_deck_type: InternalDeckType,
+    pub(crate) default_card: String,
+    pub(crate) reset_on_exhaustion: bool,
+    pub(crate) label: String,
+    pub(crate) desc: String,
+    pub(crate) cover: Cover,
+    pub(crate) comments: String,
+    pub(crate) is_hidden: bool,
+    pub(crate) draws: i64,
+    pub(crate) spec: Vec<Option<serde_json::Value>>,
+    pub(crate) draw_messages: CurrentItineraries,
+    pub(crate) default_draw_messages: CurrentItineraries,
     pub(crate) id: Option<InternalDeckId>,
-    pub(crate) lever: Option<String>,
+    pub(crate) lever: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -1519,7 +1458,7 @@ pub enum LastRunRecipeType {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Reqs {
     #[serde(rename = "$type")]
-    pub(crate) reqs_type: Option<String>,
+    pub(crate) reqs_type: String,
     #[serde(rename = "acted.chaima.revolution.edge")]
     pub(crate) acted_chaima_revolution_edge: Option<String>,
     pub(crate) arthur: Option<String>,
@@ -1546,70 +1485,68 @@ pub enum StartLabel {
 #[serde(rename_all = "PascalCase")]
 pub struct LockedInRecipe {
     #[serde(rename = "$type")]
-    pub(crate) locked_in_recipe_type: Option<LastRunRecipeType>,
-    pub(crate) priority: Option<i64>,
-    pub(crate) action_id: Option<ActionId>,
-    pub(crate) blocks: Option<bool>,
-    pub(crate) reqs: Option<CurrentItineraries>,
-    pub(crate) extant_reqs: Option<CurrentItineraries>,
-    pub(crate) greq: Option<CurrentItineraries>,
-    pub(crate) ngreq: Option<CurrentItineraries>,
+    pub(crate) locked_in_recipe_type: LastRunRecipeType,
+    pub(crate) priority: i64,
+    pub(crate) action_id: ActionId,
+    pub(crate) blocks: bool,
+    pub(crate) reqs: CurrentItineraries,
+    pub(crate) extant_reqs: CurrentItineraries,
+    pub(crate) greq: CurrentItineraries,
+    pub(crate) ngreq: CurrentItineraries,
     #[serde(rename = "FXReqs")]
-    pub(crate) fx_reqs: Option<CurrentItineraries>,
-    pub(crate) seeking: Option<CurrentItineraries>,
-    pub(crate) effects: Option<CurrentItineraries>,
-    pub(crate) x_pans: Option<CurrentItineraries>,
+    pub(crate) fx_reqs: CurrentItineraries,
+    pub(crate) seeking: CurrentItineraries,
+    pub(crate) effects: CurrentItineraries,
+    pub(crate) x_pans: CurrentItineraries,
     #[serde(rename = "FX")]
-    pub(crate) fx: Option<CurrentItineraries>,
-    pub(crate) aspects: Option<CurrentItineraries>,
-    pub(crate) mutations: Option<Vec<Option<serde_json::Value>>>,
-    pub(crate) purge: Option<CurrentItineraries>,
-    pub(crate) halt_verb: Option<CurrentItineraries>,
-    pub(crate) delete_verb: Option<CurrentItineraries>,
-    pub(crate) achievements: Option<Vec<Option<serde_json::Value>>>,
-    pub(crate) signal_important_loop: Option<bool>,
+    pub(crate) fx: CurrentItineraries,
+    pub(crate) aspects: CurrentItineraries,
+    pub(crate) mutations: Vec<Option<serde_json::Value>>,
+    pub(crate) purge: CurrentItineraries,
+    pub(crate) halt_verb: CurrentItineraries,
+    pub(crate) delete_verb: CurrentItineraries,
+    pub(crate) achievements: Vec<Option<serde_json::Value>>,
+    pub(crate) signal_important_loop: bool,
     pub(crate) audio_one_shot: Option<serde_json::Value>,
-    pub(crate) signal_ending_flavour: Option<i64>,
-    pub(crate) craftable: Option<bool>,
-    pub(crate) notable: Option<bool>,
-    pub(crate) hint_only: Option<bool>,
-    pub(crate) ambittable: Option<bool>,
-    pub(crate) warmup: Option<i64>,
-    pub(crate) inherits: Option<String>,
-    pub(crate) preface: Option<Label>,
-    pub(crate) start_label: Option<Label>,
-    pub(crate) label: Option<Label>,
-    pub(crate) start_description: Option<Label>,
-    pub(crate) desc: Option<Label>,
-    pub(crate) comments: Option<String>,
-    pub(crate) deck_effects: Option<CurrentItineraries>,
-    pub(crate) alt: Option<Vec<Option<serde_json::Value>>>,
-    pub(crate) lalt: Option<Vec<Option<serde_json::Value>>>,
-    pub(crate) inductions: Option<Vec<Option<serde_json::Value>>>,
-    pub(crate) linked: Option<Vec<Option<serde_json::Value>>>,
-    pub(crate) ending: Option<String>,
-    pub(crate) icon: Option<ActionId>,
+    pub(crate) signal_ending_flavour: i64,
+    pub(crate) craftable: bool,
+    pub(crate) notable: bool,
+    pub(crate) hint_only: bool,
+    pub(crate) ambittable: bool,
+    pub(crate) warmup: i64,
+    pub(crate) inherits: String,
+    pub(crate) preface: String,
+    pub(crate) start_label: String,
+    pub(crate) label: String,
+    pub(crate) start_description: String,
+    pub(crate) desc: String,
+    pub(crate) comments: String,
+    pub(crate) deck_effects: CurrentItineraries,
+    pub(crate) alt: Vec<Option<serde_json::Value>>,
+    pub(crate) lalt: Vec<Option<serde_json::Value>>,
+    pub(crate) inductions: Vec<Option<serde_json::Value>>,
+    pub(crate) linked: Vec<Option<serde_json::Value>>,
+    pub(crate) ending: String,
+    pub(crate) icon: ActionId,
     pub(crate) burn_image: Option<serde_json::Value>,
-    pub(crate) run: Option<String>,
-    pub(crate) pre_slots: Option<Vec<Option<serde_json::Value>>>,
-    pub(crate) slots: Option<Vec<Option<serde_json::Value>>>,
-    pub(crate) internal_deck: Option<InternalDeck>,
-    pub(crate) id: Option<String>,
-    pub(crate) lever: Option<String>,
+    pub(crate) run: String,
+    pub(crate) pre_slots: Vec<Option<serde_json::Value>>,
+    pub(crate) slots: Vec<Option<serde_json::Value>>,
+    pub(crate) internal_deck: InternalDeck,
+    pub(crate) id: String,
+    pub(crate) lever: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct TentacledMutations {
+pub struct FluffyMutations {
     #[serde(rename = "$type")]
-    pub(crate) mutations_type: Option<String>,
+    pub(crate) mutations_type: String,
     #[serde(rename = "v.numa.winter.a")]
     pub(crate) v_numa_winter_a: Option<i64>,
     #[serde(rename = "v.numa.moon.b")]
     pub(crate) v_numa_moon_b: Option<i64>,
     #[serde(rename = "interest.moon")]
     pub(crate) interest_moon: Option<i64>,
-    #[serde(rename = "v.rite.renewal")]
-    pub(crate) v_rite_renewal: Option<i64>,
     #[serde(rename = "v.project.solar")]
     pub(crate) v_project_solar: Option<i64>,
     #[serde(rename = "interest.lantern")]
@@ -1632,6 +1569,8 @@ pub struct TentacledMutations {
     pub(crate) v_intrusion: Option<i64>,
     #[serde(rename = "interest.winter")]
     pub(crate) interest_winter: Option<i64>,
+    #[serde(rename = "v.rite.renewal")]
+    pub(crate) v_rite_renewal: Option<i64>,
     #[serde(rename = "interest.nectar")]
     pub(crate) interest_nectar: Option<i64>,
     #[serde(rename = "v.lost.find")]
@@ -1663,57 +1602,67 @@ pub struct TentacledMutations {
     pub(crate) v_revolution: Option<i64>,
     pub(crate) moth: Option<i64>,
     pub(crate) finished: Option<i64>,
+    #[serde(rename = "acted.fraser.hunt.changing.scale")]
+    pub(crate) acted_fraser_hunt_changing_scale: Option<i64>,
+    #[serde(rename = "acted.azita.hunt.changing.edge")]
+    pub(crate) acted_azita_hunt_changing_edge: Option<i64>,
+    #[serde(rename = "acted.arthur.hunt.changing.edge")]
+    pub(crate) acted_arthur_hunt_changing_edge: Option<i64>,
+    #[serde(rename = "acted.chaima.hunt.changing.edge")]
+    pub(crate) acted_chaima_hunt_changing_edge: Option<i64>,
+    #[serde(rename = "acted.aladim.hunt.changing.scale")]
+    pub(crate) acted_aladim_hunt_changing_scale: Option<i64>,
     #[serde(rename = "wisdom.committed")]
     pub(crate) wisdom_committed: Option<i64>,
-    #[serde(rename = "a.xere")]
-    pub(crate) a_xere: Option<i64>,
-    #[serde(rename = "w.skolekosophy")]
-    pub(crate) w_skolekosophy: Option<i64>,
-    pub(crate) scale: Option<i64>,
-    pub(crate) knock: Option<i64>,
-    pub(crate) skill: Option<i64>,
     #[serde(rename = "w.birdsong")]
     pub(crate) w_birdsong: Option<i64>,
     pub(crate) moon: Option<i64>,
-    pub(crate) grail: Option<i64>,
-    pub(crate) edge: Option<i64>,
+    pub(crate) scale: Option<i64>,
+    pub(crate) skill: Option<i64>,
     pub(crate) lantern: Option<i64>,
     pub(crate) sky: Option<i64>,
     pub(crate) forge: Option<i64>,
-    pub(crate) heart: Option<i64>,
-    #[serde(rename = "w.horomachistry")]
-    pub(crate) w_horomachistry: Option<i64>,
-    #[serde(rename = "a.xhausted")]
-    pub(crate) a_xhausted: Option<i64>,
-    #[serde(rename = "w.illumination")]
-    pub(crate) w_illumination: Option<i64>,
-    #[serde(rename = "w.nyctodromy")]
-    pub(crate) w_nyctodromy: Option<i64>,
-    #[serde(rename = "w.hushery")]
-    pub(crate) w_hushery: Option<i64>,
-    pub(crate) winter: Option<i64>,
-    pub(crate) rose: Option<i64>,
-    #[serde(rename = "a.xmet")]
-    pub(crate) a_xmet: Option<i64>,
-    pub(crate) nectar: Option<i64>,
-    #[serde(rename = "a.xsha")]
-    pub(crate) a_xsha: Option<i64>,
-    #[serde(rename = "w.preservation")]
-    pub(crate) w_preservation: Option<i64>,
+    pub(crate) edge: Option<i64>,
     #[serde(rename = "a.xhea")]
     pub(crate) a_xhea: Option<i64>,
+    #[serde(rename = "w.nyctodromy")]
+    pub(crate) w_nyctodromy: Option<i64>,
+    pub(crate) rose: Option<i64>,
     #[serde(rename = "a.xfet")]
     pub(crate) a_xfet: Option<i64>,
-    #[serde(rename = "a.xcho")]
-    pub(crate) a_xcho: Option<i64>,
     #[serde(rename = "a.xpho")]
     pub(crate) a_xpho: Option<i64>,
-    #[serde(rename = "a.xtri")]
-    pub(crate) a_xtri: Option<i64>,
+    #[serde(rename = "w.hushery")]
+    pub(crate) w_hushery: Option<i64>,
+    #[serde(rename = "w.illumination")]
+    pub(crate) w_illumination: Option<i64>,
     #[serde(rename = "w.bosk")]
     pub(crate) w_bosk: Option<i64>,
+    #[serde(rename = "a.xhausted")]
+    pub(crate) a_xhausted: Option<i64>,
+    pub(crate) heart: Option<i64>,
+    pub(crate) nectar: Option<i64>,
+    pub(crate) winter: Option<i64>,
     #[serde(rename = "w.ithastry")]
     pub(crate) w_ithastry: Option<i64>,
+    pub(crate) grail: Option<i64>,
+    #[serde(rename = "w.skolekosophy")]
+    pub(crate) w_skolekosophy: Option<i64>,
+    #[serde(rename = "w.horomachistry")]
+    pub(crate) w_horomachistry: Option<i64>,
+    pub(crate) knock: Option<i64>,
+    #[serde(rename = "a.xere")]
+    pub(crate) a_xere: Option<i64>,
+    #[serde(rename = "a.xsha")]
+    pub(crate) a_xsha: Option<i64>,
+    #[serde(rename = "a.xmet")]
+    pub(crate) a_xmet: Option<i64>,
+    #[serde(rename = "a.xtri")]
+    pub(crate) a_xtri: Option<i64>,
+    #[serde(rename = "w.preservation")]
+    pub(crate) w_preservation: Option<i64>,
+    #[serde(rename = "a.xcho")]
+    pub(crate) a_xcho: Option<i64>,
     #[serde(rename = "acted.julian.numa.moon.b.moon")]
     pub(crate) acted_julian_numa_moon_b_moon: Option<i64>,
     #[serde(rename = "acted.franklin.numa.grail.b.grail")]
@@ -1734,14 +1683,4 @@ pub struct TentacledMutations {
     pub(crate) orderplaced_bottle_lambig: Option<i64>,
     #[serde(rename = "orderplaced.bottle.strathcoyne")]
     pub(crate) orderplaced_bottle_strathcoyne: Option<i64>,
-    #[serde(rename = "acted.fraser.hunt.changing.scale")]
-    pub(crate) acted_fraser_hunt_changing_scale: Option<i64>,
-    #[serde(rename = "acted.azita.hunt.changing.edge")]
-    pub(crate) acted_azita_hunt_changing_edge: Option<i64>,
-    #[serde(rename = "acted.arthur.hunt.changing.edge")]
-    pub(crate) acted_arthur_hunt_changing_edge: Option<i64>,
-    #[serde(rename = "acted.chaima.hunt.changing.edge")]
-    pub(crate) acted_chaima_hunt_changing_edge: Option<i64>,
-    #[serde(rename = "acted.aladim.hunt.changing.scale")]
-    pub(crate) acted_aladim_hunt_changing_scale: Option<i64>,
 }
