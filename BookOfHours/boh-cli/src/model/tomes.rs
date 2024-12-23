@@ -148,16 +148,6 @@ impl Identifiable for Element {
     }
 }
 
-// Implement the trait for some struct
-impl<T: Identifiable> FindById for Vec<T> {
-    type Item = T;
-    type Collection = Vec<T>;
-
-    fn get_collection(&self) -> &Self::Collection {
-        self
-    }
-}
-
 impl FindById for Tomes {
     type Item = Element;
 

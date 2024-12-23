@@ -1,5 +1,5 @@
 use crate::model::save::TentacledPayload;
-use crate::model::Mastery;
+use crate::model::{Identifiable, Mastery};
 
 impl Mastery for TentacledPayload {
     fn has_mastery(&self) -> bool {
@@ -23,5 +23,15 @@ impl Mastery for TentacledPayload {
         mutations_mastered
             .iter()
             .any(|x| x.is_some_and(|val| val > 0))
+    }
+}
+
+impl Identifiable for TentacledPayload {
+    fn id(&self) -> &str {
+        &self.id
+    }
+
+    fn inner_id(&self) -> &str {
+        &self.id
     }
 }
