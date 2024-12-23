@@ -522,6 +522,7 @@ where
 
     copy_if_clipboard_found(combined);
 
+    trace!(json_data =? serializable_value);
     // print each extra item
     if !serializable_value.get_extra().is_empty() {
         for (extra_key, extra_value) in serializable_value
@@ -536,6 +537,19 @@ where
                 .get_lesson_string(extra_value)
                 .unwrap_or_else(|| panic!("Failed to get lesson using ID: {extra_key}"));
             println!("{}", lesson_id);
+        }
+        if query_type == QueryType::AspectedItems {
+            // Aspects
+            serializable_value.get_extra().iter()
+                .filter(|(k, v)| k.contains("boost"))
+                .for_each(|(aspect_name, aspect_amount)| {
+                    debug!(
+                        ?aspect_name,
+                        ?aspect_amount,
+                        "Found aspect to print"
+                    );
+                    println!("{aspect_name}: {aspect_amount}");
+                })
         }
         for (aspected_item_key, aspected_item_value) in serializable_value
             .get_extra()

@@ -105,6 +105,23 @@ impl GameElementDetails for Element {
         let b = a.unwrap_or_default();
         b.clone()
     }
+
+    #[tracing::instrument(skip(self))]
+    fn get_extra(&self) -> HashMap<String, String> {
+        let mut map: HashMap<String, String> = HashMap::new();
+        if let Some(aspects) = &self.aspects {
+            let mapped_aspects = aspects
+                .into_iter()
+                .map(|(k,v)|{
+                    (k.clone(), v.clone().to_string())
+                })
+                .collect::<HashMap<String, String>>();
+
+            map.extend(mapped_aspects)
+        }
+
+        map
+    }
 }
 
 impl AspectedItems {
