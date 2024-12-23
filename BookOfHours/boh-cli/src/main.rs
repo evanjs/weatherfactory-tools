@@ -34,6 +34,8 @@ use notify::event::ModifyKind;
 use rustyline::history::DefaultHistory;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use size::Base::Base2;
+use size::{Size, SizeFormatter, Style};
 use strum_macros::EnumString;
 
 static APP_PATH_FULL: &str = "evanjs/weatherfactory-tools/book-of-hours_cli";
@@ -61,7 +63,13 @@ enum QueryType {
     ConsiderBooks,
 }
 
-pub(crate) fn try_parse_json_data<'a, T>(json_data: &'a str) -> anyhow::Result<T> 
+fn get_sized_string(size_num: usize) -> String {
+
+    let sized_str = size::Size::from_bytes(size_num);
+    sized_str.format().with_base(Base2).with_style(Style::Default).to_string()
+}
+
+pub(crate) fn try_parse_json_data_path_to_error<'a, T>(json_data: &'a str) -> anyhow::Result<T>
 where 
     T: serde::Deserialize<'a>
 {
@@ -71,8 +79,56 @@ where
         error!("Error path: {:?}", path);
         anyhow::anyhow!(err)
     })?;
-    debug!("Successfully parsed json data");
+    debug!("Successfully parsed json data using path_to_error");
     Ok(data)
+}
+
+#[tracing::instrument(skip(json_data))]
+pub(crate) fn try_parse_json_data<'a, T>(json_data: &'a str) -> anyhow::Result<T>
+where
+    T: serde::Deserialize<'a>,
+{
+    // let remaining_space = stacker::remaining_stack().expect("Failed to determine remaining stack space");
+    // let remaining_space_formatted = get_sized_string(remaining_space);
+
+    //debug!(
+    //    remaining_space_mb =? remaining_space_formatted,
+    //    "Remaining stack space: {} bytes",
+    //    remaining_space
+    //);
+    debug!("Parsing json data. Growing stack if necessary");
+
+    let red_zone = 1 * 1024 * 1024; // 1MB red zone
+    debug!(
+        red_zone_mb =? get_sized_string(red_zone),
+        "Red zone: {} bytes",
+        red_zone
+    );
+
+    let file_size = json_data.len();
+    debug!(
+        file_size_mb =? get_sized_string(file_size),
+        "File size: {} bytes",
+        file_size
+    );
+
+    let maybe_grow_stack_size = if file_size > 10 * 1024 * 1024 {
+        4 * 1024 * 1024 // Larger JSON files get 4MB
+    } else {
+        2 * 1024 * 1024 // Smaller files get 2MB
+    };
+
+    debug!(
+        maybe_grow_stack_size_mb =? get_sized_string(maybe_grow_stack_size),
+        "Maybe grow stack size: {} bytes",
+        maybe_grow_stack_size
+    );
+
+    stacker::maybe_grow(red_zone, maybe_grow_stack_size, || {
+        let data = try_parse_json_data_path_to_error(json_data)?;
+        debug!("Successfully parsed json data");
+        Ok(data)
+    })
 }
 
 /// Read the game's configuration file
