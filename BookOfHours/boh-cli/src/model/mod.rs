@@ -1,6 +1,7 @@
 use crate::QueryType;
 use std::collections::HashMap;
 use std::fmt::Debug;
+use serde::{Deserialize, Serialize};
 use tracing::{debug, trace, warn};
 
 pub(crate) mod aspected_items;
@@ -9,10 +10,17 @@ pub(crate) mod config;
 pub(crate) mod consider_books;
 pub(crate) mod game_documents;
 pub(crate) mod lessons;
-mod recipe;
+pub(crate) mod recipe;
 pub(crate) mod save;
 pub(crate) mod skills;
 pub(crate) mod tomes;
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum BoolOrString {
+    Bool(bool),
+    String(String),
+}
 
 // Define a shared trait for elements that have an ID field
 pub trait Identifiable {
