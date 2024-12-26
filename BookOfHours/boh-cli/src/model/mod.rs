@@ -185,6 +185,6 @@ impl<T: Identifiable + GameElementDetails> FindById for Vec<T> {
     }
 
     fn get_collection_mut(&mut self) -> &mut Self::Collection {
-        self.as_mut()
+        self
     }
 }

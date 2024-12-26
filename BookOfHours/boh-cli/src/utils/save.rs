@@ -44,7 +44,7 @@ impl Autosave {
         let res = manifested_items.iter().any(|manifested_item| {
             let manifested_item_id = manifested_item.to_ascii_lowercase();
             let item_id = item_id.to_ascii_lowercase();
-            let manifested_item_id_contains_queried_item_id = manifested_item_id.contains(&item_id);
+            
             // println!(
             //     "Does manifested item id: {} contain queried item id: {}? – {}",
             //     manifested_item_id,
@@ -52,7 +52,7 @@ impl Autosave {
             //     manifested_item_id_contains_queried_item_id
             // );
 
-            manifested_item_id_contains_queried_item_id
+            manifested_item_id.contains(&item_id)
         });
 
         Ok(res)

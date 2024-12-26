@@ -25,9 +25,9 @@ enum BoolOrString {
     String(String),
 }
 
-impl Into<bool> for BoolOrString {
-    fn into(self) -> bool {
-        match self {
+impl From<BoolOrString> for bool {
+    fn from(val: BoolOrString) -> Self {
+        match val {
             BoolOrString::Bool(b) => b,
             BoolOrString::String(s) => s.parse().unwrap_or(false),
         }
@@ -662,9 +662,9 @@ impl From<Value> for Recipes {
     }
 }
 
-impl Into<Value> for Recipes {
-    fn into(self) -> Value {
-        serde_json::to_value(self).unwrap()
+impl From<Recipes> for Value {
+    fn from(val: Recipes) -> Self {
+        serde_json::to_value(val).unwrap()
     }
 }
 

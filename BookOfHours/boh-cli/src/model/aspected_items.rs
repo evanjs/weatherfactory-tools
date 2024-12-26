@@ -115,7 +115,7 @@ impl GameElementDetails for Element {
         let mut map: HashMap<String, String> = HashMap::new();
         if let Some(aspects) = &self.aspects {
             let mapped_aspects = aspects
-                .into_iter()
+                .iter()
                 .map(|(k, v)| (k.clone(), v.clone().to_string()))
                 .collect::<HashMap<String, String>>();
 

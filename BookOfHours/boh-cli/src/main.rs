@@ -102,7 +102,7 @@ where
     //);
     debug!("Parsing json data. Growing stack if necessary");
 
-    let red_zone = 1 * 1024 * 1024; // 1MB red zone
+    let red_zone = 1024 * 1024; // 1MB red zone
     debug!(
         red_zone_mb =? get_sized_string(red_zone),
         "Red zone: {} bytes",

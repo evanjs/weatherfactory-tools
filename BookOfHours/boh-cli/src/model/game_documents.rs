@@ -12,7 +12,7 @@ use crate::{
 };
 use std::path::PathBuf;
 
-static RECIPE_FILES: &'static [&'static str] = &[
+static RECIPE_FILES: &[&str] = &[
     "__debug.json",
     "_backstops.json",
     "_collections.json",

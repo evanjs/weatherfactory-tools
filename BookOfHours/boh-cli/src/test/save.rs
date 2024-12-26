@@ -69,8 +69,8 @@ fn check_if_item_already_crafted(item_id: &str, save_file_name: &str) {
         .check_if_item_manifested_fuzzy(item)
         .expect("Failed to check if item has been manifested");
     println!("Item manifested: {:?}", item_manifested);
-    assert_eq!(
-        item_manifested, true,
+    assert!(
+        item_manifested,
         "Item with ID \"{}\" has not yet been manifested",
         item_id
     );
@@ -97,8 +97,8 @@ fn check_if_recipe_unlocked(item_id: &str, save_file_name: &str) {
         .check_if_recipe_unlocked(item)
         .expect("Failed to check if recipe has been unlocked");
     println!("Recipe unlocked: {:?}", recipe_unlocked);
-    assert_eq!(
-        recipe_unlocked, true,
+    assert!(
+        recipe_unlocked,
         "Recipe with ID \"{}\" has not yet been unlocked",
         item_id
     );
