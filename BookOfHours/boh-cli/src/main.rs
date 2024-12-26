@@ -2,6 +2,7 @@ mod logging;
 
 mod model;
 mod utils;
+mod test;
 
 use std::collections::HashMap;
 use std::fmt::Debug;
