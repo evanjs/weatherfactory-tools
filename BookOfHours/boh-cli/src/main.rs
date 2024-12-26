@@ -497,7 +497,7 @@ where
                 );
                 trace!(?sticky_payload);
                 if !sticky_payload.has_mastery() {
-                    bail!("Tome has not been mastered yet! (You might be studying it)");
+                    warn!("Tome has not been mastered yet! (You might be studying it)");
                 }
             }
         }
@@ -510,7 +510,7 @@ where
                 );
                 trace!(?tentacled_payload);
                 if !tentacled_payload.has_mastery() {
-                    bail!("Tome has not been mastered yet!");
+                    warn!("Tome has not been mastered yet!");
                 }
             }
         }
