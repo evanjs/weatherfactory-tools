@@ -1,7 +1,7 @@
-use serde_json::Value;
 use crate::model::consider_books::{ConsiderBooks, Element};
 use crate::model::{FindById, GameCollectionType, GameElementDetails, Identifiable};
 use crate::QueryType;
+use serde_json::Value;
 
 impl Identifiable for Element {
     // TODO: revisit this function to ensure query interface is intuitive

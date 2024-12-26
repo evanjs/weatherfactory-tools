@@ -1,7 +1,7 @@
-use serde_json::Value;
-use crate::model::{FindById, GameCollectionType, GameElementDetails, Identifiable};
 use crate::model::skills::{Element, Skills};
+use crate::model::{FindById, GameCollectionType, GameElementDetails, Identifiable};
 use crate::QueryType;
+use serde_json::Value;
 
 impl Element {
     pub(crate) fn get_label(&self) -> &str {

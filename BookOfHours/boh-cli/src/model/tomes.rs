@@ -133,4 +133,3 @@ pub struct Xtrigger {
 pub enum Morpheffect {
     Spawn,
 }
-

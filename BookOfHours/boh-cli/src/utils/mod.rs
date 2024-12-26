@@ -1,11 +1,11 @@
+mod aspected_items;
+mod aspects;
+mod consider_books;
+mod game_documents;
+mod lessons;
 mod recipe;
 pub(crate) mod save;
+mod skills;
 mod sticky_payload;
 mod tentacled_payload;
-mod lessons;
-mod skills;
-mod aspects;
-mod aspected_items;
-mod consider_books;
 mod tomes;
-mod game_documents;

@@ -1,9 +1,9 @@
+use crate::model::tomes::{Element, Tomes};
+use crate::model::{FindById, GameCollectionType, GameElementDetails, Identifiable};
+use crate::QueryType;
+use serde_json::Value;
 use std::collections::HashMap;
 use tracing::{debug, trace, warn};
-use serde_json::Value;
-use crate::model::{FindById, GameCollectionType, GameElementDetails, Identifiable};
-use crate::model::tomes::{Element, Tomes};
-use crate::QueryType;
 
 impl Identifiable for Element {
     fn id(&self) -> &str {

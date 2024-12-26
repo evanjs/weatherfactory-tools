@@ -1,7 +1,7 @@
 use crate::QueryType;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::Debug;
-use serde::{Deserialize, Serialize};
 use tracing::{debug, trace, warn};
 
 pub(crate) mod aspected_items;

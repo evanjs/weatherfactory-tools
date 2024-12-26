@@ -108,4 +108,3 @@ pub enum SkillingupId {
 pub enum Morpheffect {
     Mutate,
 }
-

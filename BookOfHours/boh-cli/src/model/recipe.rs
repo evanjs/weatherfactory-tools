@@ -1,6 +1,6 @@
+use crate::model::BoolOrString;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::model::BoolOrString;
 
 pub(crate) static RECIPE_FILES: &[&str] = &[
     "__debug.json",
@@ -708,4 +708,3 @@ pub struct Aspects {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) fatiguing: Option<i64>,
 }
-

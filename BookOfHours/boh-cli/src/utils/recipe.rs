@@ -1,6 +1,6 @@
-use serde_json::Value;
-use crate::model::{BoolOrString, FindById, GameElementDetails, Identifiable};
 use crate::model::recipe::{Element, Recipes};
+use crate::model::{BoolOrString, FindById, GameElementDetails, Identifiable};
+use serde_json::Value;
 
 impl IntoIterator for Recipes {
     type Item = Element;

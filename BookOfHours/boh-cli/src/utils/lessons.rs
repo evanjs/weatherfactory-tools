@@ -1,6 +1,6 @@
-use tracing::{trace, warn};
-use serde_json::Value;
 use crate::model::lessons::Lessons;
+use serde_json::Value;
+use tracing::{trace, warn};
 
 impl Lessons {
     #[tracing::instrument(skip(self))]

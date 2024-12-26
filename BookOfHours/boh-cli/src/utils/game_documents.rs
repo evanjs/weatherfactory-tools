@@ -1,15 +1,15 @@
-use std::path::PathBuf;
-use crate::{deserialize_json_with_arbitrary_encoding, get_autosave_file};
 use crate::model::aspected_items::AspectedItems;
 use crate::model::aspects::Aspects;
 use crate::model::consider_books::ConsiderBooks;
-use crate::model::{FindById, Identifiable, Mastery};
 use crate::model::game_documents::GameDocuments;
 use crate::model::lessons::Lessons;
 use crate::model::recipe::Recipes;
 use crate::model::save::{Autosave, StickyPayload, TentacledPayload};
 use crate::model::skills::Skills;
 use crate::model::tomes::Tomes;
+use crate::model::{FindById, Identifiable, Mastery};
+use crate::{deserialize_json_with_arbitrary_encoding, get_autosave_file};
+use std::path::PathBuf;
 
 impl GameDocuments {
     /// Constructs a new instance of the GameDocuments struct
@@ -238,5 +238,4 @@ impl GameDocuments {
 
         Ok(all_recipes.into())
     }
-
 }

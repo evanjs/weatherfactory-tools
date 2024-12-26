@@ -60,4 +60,3 @@ pub enum Morpheffect {
     Spawn,
     Transform,
 }
-
