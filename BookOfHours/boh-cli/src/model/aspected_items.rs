@@ -116,9 +116,7 @@ impl GameElementDetails for Element {
         if let Some(aspects) = &self.aspects {
             let mapped_aspects = aspects
                 .into_iter()
-                .map(|(k,v)|{
-                    (k.clone(), v.clone().to_string())
-                })
+                .map(|(k, v)| (k.clone(), v.clone().to_string()))
                 .collect::<HashMap<String, String>>();
 
             map.extend(mapped_aspects)
@@ -131,16 +129,14 @@ impl GameElementDetails for Element {
 impl AspectedItems {
     #[tracing::instrument(skip(self))]
     pub(crate) fn get_memory_from_id(&self, id: &str) -> Option<&Element> {
-        self.elements
-            .iter()
-            .find(|&f| {
-                trace!(
-                    existing_id =? &f.id,
-                    queried_id =? id,
-                    "Checking if query matches ID"
-                );
-                f.id.as_str() == id
-            })
+        self.elements.iter().find(|&f| {
+            trace!(
+                existing_id =? &f.id,
+                queried_id =? id,
+                "Checking if query matches ID"
+            );
+            f.id.as_str() == id
+        })
     }
     #[tracing::instrument(skip(self))]
     pub(crate) fn get_memory_string_from_id(&self, id: &str) -> Option<String> {

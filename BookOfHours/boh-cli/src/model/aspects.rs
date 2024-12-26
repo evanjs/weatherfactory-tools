@@ -78,7 +78,9 @@ impl FindById for Aspects {
     fn get_collection(&self) -> &Self::Collection {
         self.elements.get_collection()
     }
-    fn get_collection_mut(&mut self) -> &mut Self::Collection { self.elements.get_collection_mut() }
+    fn get_collection_mut(&mut self) -> &mut Self::Collection {
+        self.elements.get_collection_mut()
+    }
 }
 
 impl From<Value> for Aspects {

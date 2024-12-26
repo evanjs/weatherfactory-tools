@@ -15,7 +15,8 @@ impl Mastery for StickyPayload {
             mutations.mastery_rose,
             mutations.mastery_scale,
             mutations.mastery_sky,
-            mutations.mastery_winter];
+            mutations.mastery_winter,
+        ];
 
         mutations_mastered
             .iter()

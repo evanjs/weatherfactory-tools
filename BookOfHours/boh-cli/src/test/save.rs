@@ -1,8 +1,6 @@
 use crate::model::game_documents::GameDocuments;
 use crate::model::save::Autosave;
-use crate::{
-    init_json_data_explicit_save_file, read_config
-};
+use crate::{init_json_data_explicit_save_file, read_config};
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;

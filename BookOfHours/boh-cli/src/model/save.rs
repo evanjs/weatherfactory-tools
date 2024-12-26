@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
@@ -255,7 +255,7 @@ pub enum Effect {
     TowardsNuma,
     Winter,
     #[serde(rename(serialize = "Winter [Paused]", deserialize = "winter_paused"))]
-    WinterPaused
+    WinterPaused,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

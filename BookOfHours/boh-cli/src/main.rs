@@ -1,8 +1,8 @@
 mod logging;
 
 mod model;
-mod utils;
 mod test;
+mod utils;
 
 use std::collections::HashMap;
 use std::fmt::Debug;
@@ -65,14 +65,17 @@ enum QueryType {
 }
 
 fn get_sized_string(size_num: usize) -> String {
-
     let sized_str = size::Size::from_bytes(size_num);
-    sized_str.format().with_base(Base2).with_style(Style::Default).to_string()
+    sized_str
+        .format()
+        .with_base(Base2)
+        .with_style(Style::Default)
+        .to_string()
 }
 
 pub(crate) fn try_parse_json_data_path_to_error<'a, T>(json_data: &'a str) -> anyhow::Result<T>
-where 
-    T: serde::Deserialize<'a>
+where
+    T: serde::Deserialize<'a>,
 {
     let jd = &mut serde_json::Deserializer::from_str(json_data);
     let data = serde_path_to_error::deserialize(jd).map_err(|err| {
@@ -142,8 +145,7 @@ where
 ///
 /// ```
 fn read_game_config() -> anyhow::Result<HashMap<String, String>> {
-    let file_path =
-        get_config_file_path()?;
+    let file_path = get_config_file_path()?;
     let file = std::fs::File::open(file_path)?;
     let reader = BufReader::new(file);
     let mut config = HashMap::new();
@@ -491,11 +493,7 @@ where
     match thing {
         Either::Left(maybe_sticky_payload) => {
             if let Ok(sticky_payload) = maybe_sticky_payload {
-                debug!(
-                    ?label,
-                    ?description,
-                    "Found sticky payload for item"
-                );
+                debug!(?label, ?description, "Found sticky payload for item");
                 trace!(?sticky_payload);
                 if !sticky_payload.has_mastery() {
                     warn!("Tome has not been mastered yet! (You might be studying it)");
@@ -504,11 +502,7 @@ where
         }
         Either::Right(maybe_tentacled_payload) => {
             if let Ok(tentacled_payload) = maybe_tentacled_payload {
-                debug!(
-                    ?label,
-                    ?description,
-                    "Found tentacled payload for item"
-                );
+                debug!(?label, ?description, "Found tentacled payload for item");
                 trace!(?tentacled_payload);
                 if !tentacled_payload.has_mastery() {
                     warn!("Tome has not been mastered yet!");
@@ -541,14 +535,12 @@ where
         }
         if query_type == QueryType::AspectedItems {
             // Aspects
-            serializable_value.get_extra().iter()
+            serializable_value
+                .get_extra()
+                .iter()
                 .filter(|(k, v)| k.contains("boost"))
                 .for_each(|(aspect_name, aspect_amount)| {
-                    debug!(
-                        ?aspect_name,
-                        ?aspect_amount,
-                        "Found aspect to print"
-                    );
+                    debug!(?aspect_name, ?aspect_amount, "Found aspect to print");
                     println!("{aspect_name}: {aspect_amount}");
                 })
         }
@@ -558,22 +550,22 @@ where
             .filter(|(k, v)| k.contains("reading"))
         {
             let memory_id = match query_type {
-                QueryType::AspectedItems => {
-                    game_documents
-                        .read()
-                        .expect("Failed to get game documents")
-                        .aspected_items
-                        .get_memory_string_from_query(aspected_item_value)
-                        .unwrap_or_else(|| panic!("Failed to get memory using ID: {aspected_item_key}"))
-                },
-                _ => {
-                    game_documents
-                        .read()
-                        .expect("Failed to get game documents")
-                        .aspected_items
-                        .get_memory_string_from_id(aspected_item_value)
-                        .unwrap_or_else(|| panic!("Failed to get memory using ID: {aspected_item_key}"))
-                }
+                QueryType::AspectedItems => game_documents
+                    .read()
+                    .expect("Failed to get game documents")
+                    .aspected_items
+                    .get_memory_string_from_query(aspected_item_value)
+                    .unwrap_or_else(|| {
+                        panic!("Failed to get memory using ID: {aspected_item_key}")
+                    }),
+                _ => game_documents
+                    .read()
+                    .expect("Failed to get game documents")
+                    .aspected_items
+                    .get_memory_string_from_id(aspected_item_value)
+                    .unwrap_or_else(|| {
+                        panic!("Failed to get memory using ID: {aspected_item_key}")
+                    }),
             };
             println!("{}", memory_id);
 
@@ -1099,9 +1091,7 @@ fn init_json_data_explicit_save_file(
     base_directory: &PathBuf,
     save_file_path: &PathBuf,
 ) -> anyhow::Result<Arc<RwLock<GameDocuments>>> {
-    let game = GameDocuments::new_using_data_path_explicit_save_file(
-        base_directory,
-        save_file_path
-    )?;
+    let game =
+        GameDocuments::new_using_data_path_explicit_save_file(base_directory, save_file_path)?;
     Ok(Arc::new(RwLock::new(game)))
 }

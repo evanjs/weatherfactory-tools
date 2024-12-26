@@ -1,9 +1,7 @@
-use crate::model::save::{
-    Autosave, PayloadType, StickyPayload, TentacledPayload,
-};
+use crate::model::save::{Autosave, PayloadType, StickyPayload, TentacledPayload};
 use crate::model::Identifiable;
-use anyhow::{anyhow, Ok};
 use anyhow::bail;
+use anyhow::{anyhow, Ok};
 use either::Either;
 use std::fmt::Debug;
 use tracing::{debug, trace, warn};
@@ -76,7 +74,6 @@ impl Autosave {
 
         trace!(?game_item, "Getting item from save file");
 
-
         // Find the sphere containing the item
         for root_population_command_sphere in &self.root_population_command.spheres {
             for fluffy_token in &root_population_command_sphere.tokens {
@@ -84,18 +81,18 @@ impl Autosave {
                     for purple_sphere in &purple_dominion.spheres {
                         for tentacled_token in &purple_sphere.tokens {
                             let payload = &tentacled_token.payload;
-                            if tentacled_token.payload.payload_type == PayloadType::ElementStackCreationCommand {
+                            if tentacled_token.payload.payload_type
+                                == PayloadType::ElementStackCreationCommand
+                            {
                                 trace!(
                                     payload_id =? payload.id,
                                     game_item_id =? game_item.inner_id(),
                                     "Checking if payload contains item"
                                 );
-                                if payload.id
+                                if payload
+                                    .id
                                     .to_ascii_lowercase()
-                                    .contains(game_item
-                                        .inner_id()
-                                        .to_ascii_lowercase()
-                                        .as_str())
+                                    .contains(game_item.inner_id().to_ascii_lowercase().as_str())
                                 {
                                     // Return the matching innermost payload
                                     return Ok(tentacled_token.payload.clone());
@@ -173,7 +170,9 @@ impl Autosave {
                 for purple_dominion in &fluffy_token.payload.dominions {
                     for purple_sphere in &purple_dominion.spheres {
                         for tentacled_token in &purple_sphere.tokens {
-                            if tentacled_token.payload.payload_type == PayloadType::SituationCreationCommand {
+                            if tentacled_token.payload.payload_type
+                                == PayloadType::SituationCreationCommand
+                            {
                                 for fluffy_dominion in &tentacled_token.payload.dominions {
                                     for fluffy_sphere in &fluffy_dominion.spheres {
                                         for sticky_token in &fluffy_sphere.tokens {
@@ -182,12 +181,16 @@ impl Autosave {
                                                 game_item_id =? game_item.inner_id(),
                                                 "Checking if payload contains item"
                                             );
-                                            if sticky_token.payload.id
+                                            if sticky_token
+                                                .payload
+                                                .id
                                                 .to_ascii_lowercase()
-                                                .contains(game_item
-                                                    .inner_id()
-                                                    .to_ascii_lowercase()
-                                                    .as_str())
+                                                .contains(
+                                                    game_item
+                                                        .inner_id()
+                                                        .to_ascii_lowercase()
+                                                        .as_str(),
+                                                )
                                             {
                                                 // Return the matching innermost payload
                                                 return Ok(sticky_token.payload.clone());
@@ -212,9 +215,7 @@ impl Autosave {
     }
 
     pub(crate) fn get_unique_items(&self) -> anyhow::Result<Vec<String>> {
-        let character_creation_commands = self
-            .clone()
-            .character_creation_commands;
+        let character_creation_commands = self.clone().character_creation_commands;
 
         let unique_items_manifested = &character_creation_commands
             .first()
@@ -224,11 +225,8 @@ impl Autosave {
         Ok(unique_items_manifested.to_vec())
     }
 
-
     pub(crate) fn get_recipes_unlocked(&self) -> anyhow::Result<Vec<String>> {
-        let character_creation_commands = self
-            .clone()
-            .character_creation_commands;
+        let character_creation_commands = self.clone().character_creation_commands;
 
         let ambittable_recipes_unlocked = &character_creation_commands
             .first()

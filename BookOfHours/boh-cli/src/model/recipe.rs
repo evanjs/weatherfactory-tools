@@ -1,12 +1,12 @@
+use crate::model::{FindById, GameElementDetails, Identifiable};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
-use crate::model::{FindById, GameElementDetails, Identifiable};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Recipes {
     #[serde(rename = "recipes")]
-    pub(crate) elements: Vec<Element>
+    pub(crate) elements: Vec<Element>,
 }
 
 impl IntoIterator for Recipes {
@@ -669,7 +669,9 @@ impl Into<Value> for Recipes {
 }
 
 impl Identifiable for Element {
-    fn id(&self) -> &str { &self.id }
+    fn id(&self) -> &str {
+        &self.id
+    }
     fn inner_id(&self) -> &str {
         &self.id
     }
@@ -686,7 +688,9 @@ impl FindById for Recipes {
     }
 
     #[tracing::instrument(skip(self))]
-    fn get_collection_mut(&mut self) -> &mut Self::Collection { self.elements.get_collection_mut() }
+    fn get_collection_mut(&mut self) -> &mut Self::Collection {
+        self.elements.get_collection_mut()
+    }
 }
 
 impl GameElementDetails for Element {

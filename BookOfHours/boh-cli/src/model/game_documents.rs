@@ -1,17 +1,20 @@
-use std::fs::File;
-use std::io::BufReader;
-use crate::{deserialize_json_with_arbitrary_encoding, get_autosave_file, init_json_data_explicit_save_file, read_config};
 use crate::model::aspected_items::AspectedItems;
 use crate::model::aspects::Aspects;
 use crate::model::consider_books::ConsiderBooks;
 use crate::model::lessons::Lessons;
+use crate::model::recipe::Recipes;
 use crate::model::save::{Autosave, StickyPayload, TentacledPayload};
 use crate::model::skills::Skills;
 use crate::model::tomes::Tomes;
 use crate::model::{FindById, Identifiable, Mastery};
+use crate::{
+    deserialize_json_with_arbitrary_encoding, get_autosave_file, init_json_data_explicit_save_file,
+    read_config,
+};
+use std::fs::File;
+use std::io::BufReader;
 use std::path::PathBuf;
 use tracing::trace;
-use crate::model::recipe::Recipes;
 
 static RECIPE_FILES: &'static [&'static str] = &[
     "__debug.json",
@@ -223,7 +226,7 @@ impl GameDocuments {
     /// ```
     pub(crate) fn new_using_data_path_explicit_save_file(
         path: &PathBuf,
-        save_file_path: &PathBuf
+        save_file_path: &PathBuf,
     ) -> anyhow::Result<Self> {
         let tomes_path = path.join("elements").join("tomes.json");
         let tomes_data = crate::deserialize_json_with_arbitrary_encoding(&tomes_path)?;
@@ -268,30 +271,21 @@ impl GameDocuments {
         Ok(game_documents)
     }
 
-    pub(crate) fn check_if_item_manifested_fuzzy<T>(
-        &self,
-        game_item: &T
-    ) -> anyhow::Result<bool>
+    pub(crate) fn check_if_item_manifested_fuzzy<T>(&self, game_item: &T) -> anyhow::Result<bool>
     where
         T: Identifiable + Clone + std::fmt::Debug,
     {
         self.autosave.check_if_item_manifested_fuzzy(game_item)
     }
 
-    pub(crate) fn check_if_recipe_unlocked<T>(
-        &self,
-        game_item: &T
-    ) -> anyhow::Result<bool>
+    pub(crate) fn check_if_recipe_unlocked<T>(&self, game_item: &T) -> anyhow::Result<bool>
     where
         T: Identifiable + Clone + std::fmt::Debug,
     {
         self.autosave.check_if_recipe_unlocked(game_item)
     }
 
-    pub(crate) fn check_if_item_manifested<T>(
-        &self,
-        game_item: &T
-    ) -> anyhow::Result<bool>
+    pub(crate) fn check_if_item_manifested<T>(&self, game_item: &T) -> anyhow::Result<bool>
     where
         T: Identifiable + Clone + std::fmt::Debug,
     {
@@ -318,10 +312,7 @@ impl GameDocuments {
         self.autosave.get_studying_item_from_save_file(game_item)
     }
 
-    pub(crate) fn check_if_tome_mastered<T>(
-        &self,
-        game_item: &T
-    ) -> bool
+    pub(crate) fn check_if_tome_mastered<T>(&self, game_item: &T) -> bool
     where
         T: Mastery + Clone + std::fmt::Debug,
     {
@@ -336,7 +327,8 @@ fn load_recipes(recipes_dir_path: &PathBuf) -> anyhow::Result<serde_json::Value>
         let recipe_file_path = recipes_dir_path.join(recipe_file_name);
 
         // Read the JSON contents of the file as an instance of `Recipe`.
-        let recipes_data: serde_json::Value = deserialize_json_with_arbitrary_encoding(&recipe_file_path)?;
+        let recipes_data: serde_json::Value =
+            deserialize_json_with_arbitrary_encoding(&recipe_file_path)?;
 
         let recipes: Recipes = serde_json_path_to_error::from_value(recipes_data)?;
         all_recipes.get_collection_mut().extend(recipes);
