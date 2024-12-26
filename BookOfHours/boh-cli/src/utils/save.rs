@@ -1,7 +1,7 @@
 use crate::model::save::{Autosave, PayloadType, StickyPayload, TentacledPayload};
 use crate::model::Identifiable;
 use anyhow::bail;
-use anyhow::{anyhow, Ok};
+use anyhow::Ok;
 use either::Either;
 use std::fmt::Debug;
 use tracing::{debug, trace, warn};

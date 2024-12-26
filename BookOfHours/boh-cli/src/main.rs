@@ -36,7 +36,7 @@ use rustyline::history::DefaultHistory;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use size::Base::Base2;
-use size::{Size, SizeFormatter, Style};
+use size::Style;
 use strum_macros::EnumString;
 
 static APP_PATH_FULL: &str = "evanjs/weatherfactory-tools/book-of-hours_cli";
