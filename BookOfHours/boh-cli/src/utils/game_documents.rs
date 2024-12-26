@@ -225,7 +225,7 @@ impl GameDocuments {
     #[tracing::instrument(skip(recipes_dir_path))]
     pub(crate) fn load_recipes(recipes_dir_path: &PathBuf) -> anyhow::Result<serde_json::Value> {
         let mut all_recipes: Recipes = Recipes { elements: vec![] };
-        for recipe_file_name in crate::model::game_documents::RECIPE_FILES {
+        for recipe_file_name in crate::model::recipe::RECIPE_FILES {
             let recipe_file_path = recipes_dir_path.join(recipe_file_name);
 
             // Read the JSON contents of the file as an instance of `Recipe`.
