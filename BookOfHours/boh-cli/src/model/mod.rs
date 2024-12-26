@@ -43,6 +43,7 @@ pub trait FindById {
     type Collection: IntoIterator<Item = Self::Item>;
 
     fn get_collection(&self) -> &Self::Collection;
+    fn get_collection_mut(&mut self) -> &mut Self::Collection;
 
     #[tracing::instrument(skip(self))]
     fn find_by_id(&self, id: &str) -> Option<&Self::Item>
@@ -175,6 +176,7 @@ pub trait FindById {
                 None
             })
     }
+
 }
 
 
@@ -185,5 +187,9 @@ impl<T: Identifiable + GameElementDetails> FindById for Vec<T> {
 
     fn get_collection(&self) -> &Self::Collection {
         self
+    }
+
+    fn get_collection_mut(&mut self) -> &mut Self::Collection {
+        self.as_mut()
     }
 }

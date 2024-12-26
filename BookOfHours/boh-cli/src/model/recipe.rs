@@ -1,19 +1,20 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
-
+use crate::model::{FindById, GameElementDetails, Identifiable};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Recipes {
-    pub(crate) recipes: Vec<Recipe>
+    #[serde(rename = "recipes")]
+    pub(crate) elements: Vec<Element>
 }
 
 impl IntoIterator for Recipes {
-    type Item = Recipe;
-    type IntoIter = std::vec::IntoIter<Recipe>;
+    type Item = Element;
+    type IntoIter = std::vec::IntoIter<Element>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.recipes.into_iter()
+        self.elements.into_iter()
     }
 }
 
@@ -34,7 +35,7 @@ impl Into<bool> for BoolOrString {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Recipe {
+pub struct Element {
     pub(crate) id: String,
     #[serde(rename = "Label")]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -664,5 +665,35 @@ impl From<Value> for Recipes {
 impl Into<Value> for Recipes {
     fn into(self) -> Value {
         serde_json::to_value(self).unwrap()
+    }
+}
+
+impl Identifiable for Element {
+    fn id(&self) -> &str { &self.id }
+    fn inner_id(&self) -> &str {
+        &self.id
+    }
+}
+
+impl FindById for Recipes {
+    type Item = Element;
+
+    type Collection = Vec<Element>;
+
+    #[tracing::instrument(skip(self))]
+    fn get_collection(&self) -> &Self::Collection {
+        self.elements.get_collection()
+    }
+
+    #[tracing::instrument(skip(self))]
+    fn get_collection_mut(&mut self) -> &mut Self::Collection { self.elements.get_collection_mut() }
+}
+
+impl GameElementDetails for Element {
+    fn get_label(&self) -> String {
+        self.label.as_ref().unwrap_or(&"N/A".to_string()).clone()
+    }
+    fn get_desc(&self) -> String {
+        self.clone().desc.unwrap_or_default().clone()
     }
 }

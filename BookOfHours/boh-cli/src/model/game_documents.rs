@@ -8,10 +8,10 @@ use crate::model::lessons::Lessons;
 use crate::model::save::{Autosave, StickyPayload, TentacledPayload};
 use crate::model::skills::Skills;
 use crate::model::tomes::Tomes;
-use crate::model::{Identifiable, Mastery};
+use crate::model::{FindById, Identifiable, Mastery};
 use std::path::PathBuf;
 use tracing::trace;
-use crate::model::recipe::{Recipe, Recipes};
+use crate::model::recipe::Recipes;
 
 static RECIPE_FILES: &'static [&'static str] = &[
     "__debug.json",
@@ -331,21 +331,15 @@ impl GameDocuments {
 
 #[tracing::instrument(skip(recipes_dir_path))]
 fn load_recipes(recipes_dir_path: &PathBuf) -> anyhow::Result<serde_json::Value> {
-    //dbg!();
-    let mut all_recipes: Recipes = Recipes { recipes: vec![] };
-    //dbg!();
+    let mut all_recipes: Recipes = Recipes { elements: vec![] };
     for recipe_file_name in RECIPE_FILES {
-        //dbg!();
         let recipe_file_path = recipes_dir_path.join(recipe_file_name);
-        //dbg!();
+
         // Read the JSON contents of the file as an instance of `Recipe`.
         let recipes_data: serde_json::Value = deserialize_json_with_arbitrary_encoding(&recipe_file_path)?;
-        //dbg!();
-        //trace!(%recipes_data);
+
         let recipes: Recipes = serde_json_path_to_error::from_value(recipes_data)?;
-        //dbg!();
-        all_recipes.recipes.extend(recipes);
-        //dbg!();
+        all_recipes.get_collection_mut().extend(recipes);
     }
 
     dbg!();

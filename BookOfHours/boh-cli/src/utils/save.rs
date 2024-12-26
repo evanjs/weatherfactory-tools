@@ -28,7 +28,11 @@ impl Autosave {
         let unlocked_recipes = self.get_recipes_unlocked()?;
         let item_id = game_item.inner_id().to_string();
         debug!(?item_id, "Checking if recipe has been unlocked");
-        Ok(unlocked_recipes.contains(&item_id))
+        trace!(?unlocked_recipes);
+        println!("Item id: {}", item_id);
+        let res = unlocked_recipes.contains(&item_id);
+        println!("Is item ID in unlocked recipes? {}", res);
+        Ok(res)
     }
 
     #[tracing::instrument(skip(self))]

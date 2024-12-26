@@ -82,6 +82,10 @@ impl FindById for AspectedItems {
     fn get_collection(&self) -> &Self::Collection {
         self.elements.get_collection()
     }
+
+    fn get_collection_mut(&mut self) -> &mut Self::Collection {
+        self.elements.get_collection_mut()
+    }
 }
 
 impl From<Value> for AspectedItems {
@@ -134,11 +138,6 @@ impl AspectedItems {
                     existing_id =? &f.id,
                     queried_id =? id,
                     "Checking if query matches ID"
-                );
-                println!(
-                    "Checking if query matches ID – Existing ID: {} – Queried ID: {}",
-                    f.id,
-                    id
                 );
                 f.id.as_str() == id
             })
