@@ -1080,3 +1080,28 @@ fn init_json_data(base_directory: &PathBuf) -> anyhow::Result<Arc<RwLock<GameDoc
     let game = GameDocuments::new_using_data_path(base_directory)?;
     Ok(Arc::new(RwLock::new(game)))
 }
+
+/// Using the provided base directory path, initialize the shared game documents object
+///
+/// # Arguments
+///
+/// * `base_directory`: the path to the `core` directory of the exported game data
+///
+/// returns: Result<Arc<GameDocuments, Global>, Error>
+///
+/// # Examples
+///
+/// ```
+/// let base_directory_path: &PathBuf = "path_to_core_directory".into();
+/// let shared_game_documents = init_json_data(base_directory_path)?;
+/// ```
+fn init_json_data_explicit_save_file(
+    base_directory: &PathBuf,
+    save_file_path: &PathBuf,
+) -> anyhow::Result<Arc<RwLock<GameDocuments>>> {
+    let game = GameDocuments::new_using_data_path_explicit_save_file(
+        base_directory,
+        save_file_path
+    )?;
+    Ok(Arc::new(RwLock::new(game)))
+}

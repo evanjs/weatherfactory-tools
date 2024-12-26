@@ -20,6 +20,42 @@ impl Autosave {
         Ok(manifested_items.contains(&item_id))
     }
 
+    #[tracing::instrument(skip(self))]
+    pub(crate) fn check_if_recipe_unlocked<T>(&self, game_item: &T) -> anyhow::Result<bool>
+    where
+        T: Identifiable + Debug,
+    {
+        let unlocked_recipes = self.get_recipes_unlocked()?;
+        let item_id = game_item.inner_id().to_string();
+        debug!(?item_id, "Checking if recipe has been unlocked");
+        Ok(unlocked_recipes.contains(&item_id))
+    }
+
+    #[tracing::instrument(skip(self))]
+    pub(crate) fn check_if_item_manifested_fuzzy<T>(&self, game_item: &T) -> anyhow::Result<bool>
+    where
+        T: Identifiable + Debug,
+    {
+        let manifested_items = self.get_unique_items()?;
+        let item_id = game_item.inner_id().to_string();
+        debug!(?item_id, "Checking if item has been manifested");
+        let res = manifested_items.iter().any(|manifested_item| {
+            let manifested_item_id = manifested_item.to_ascii_lowercase();
+            let item_id = item_id.to_ascii_lowercase();
+            let manifested_item_id_contains_queried_item_id = manifested_item_id.contains(&item_id);
+            // println!(
+            //     "Does manifested item id: {} contain queried item id: {}? – {}",
+            //     manifested_item_id,
+            //     item_id,
+            //     manifested_item_id_contains_queried_item_id
+            // );
+
+            manifested_item_id_contains_queried_item_id
+        });
+
+        Ok(res)
+    }
+
     #[tracing::instrument(skip(self, game_item))]
     pub(crate) fn get_item_from_save_file<T>(
         &self,
@@ -75,10 +111,10 @@ impl Autosave {
         bail!("Could not find item in save file")
     }
 
-/// Determine whether the provided time is either mastered or currently being studied
-/// These criteria appear a bit differently in the save file
-///
-/// StickyPayloads are nested more than TentacledPayloads
+    /// Determine whether the provided time is either mastered or currently being studied
+    /// These criteria appear a bit differently in the save file
+    ///
+    /// StickyPayloads are nested more than TentacledPayloads
     ///
     /// # Arguments
     ///
@@ -155,7 +191,7 @@ impl Autosave {
                                         }
                                     }
                                 }
-                            }  else {
+                            } else {
                                 trace!(
                                     dpayload_id =? tentacled_token.payload.id,
                                     dpayload_type =? tentacled_token.payload.payload_type,
@@ -171,18 +207,30 @@ impl Autosave {
         bail!("Could not find item in save file")
     }
 
-pub(crate) fn get_unique_items(&self) -> anyhow::Result<Vec<String>> {
-    let character_creation_commands = self
-        .clone()
-        .character_creation_commands;
+    pub(crate) fn get_unique_items(&self) -> anyhow::Result<Vec<String>> {
+        let character_creation_commands = self
+            .clone()
+            .character_creation_commands;
 
-    let unique_items_manifested = &character_creation_commands
-        .first()
-        .expect("Failed to get first item in character creation commands")
-        .unique_elements_manifested;
+        let unique_items_manifested = &character_creation_commands
+            .first()
+            .expect("Failed to get first item in character creation commands")
+            .unique_elements_manifested;
 
-        let unique_items = unique_items_manifested;
+        Ok(unique_items_manifested.to_vec())
+    }
 
-        Ok(unique_items.to_vec())
+
+    pub(crate) fn get_recipes_unlocked(&self) -> anyhow::Result<Vec<String>> {
+        let character_creation_commands = self
+            .clone()
+            .character_creation_commands;
+
+        let ambittable_recipes_unlocked = &character_creation_commands
+            .first()
+            .expect("Failed to get first item in character creation commands")
+            .ambittable_recipes_unlocked;
+
+        Ok(ambittable_recipes_unlocked.to_vec())
     }
 }

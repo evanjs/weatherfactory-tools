@@ -126,6 +126,24 @@ impl GameElementDetails for Element {
 
 impl AspectedItems {
     #[tracing::instrument(skip(self))]
+    pub(crate) fn get_memory_from_id(&self, id: &str) -> Option<&Element> {
+        self.elements
+            .iter()
+            .find(|&f| {
+                trace!(
+                    existing_id =? &f.id,
+                    queried_id =? id,
+                    "Checking if query matches ID"
+                );
+                println!(
+                    "Checking if query matches ID – Existing ID: {} – Queried ID: {}",
+                    f.id,
+                    id
+                );
+                f.id.as_str() == id
+            })
+    }
+    #[tracing::instrument(skip(self))]
     pub(crate) fn get_memory_string_from_id(&self, id: &str) -> Option<String> {
         self.elements
             .iter()
@@ -163,7 +181,7 @@ impl AspectedItems {
                 element.aspects.as_ref().map(|aspects| {
                     aspects
                         .iter()
-                        .filter(|(key, value)| !key.contains("boost"))
+                        .filter(|(key, _)| !key.contains("boost"))
                         .map(|(key, value)| (key.clone(), value.to_string()))
                         .collect()
                 })

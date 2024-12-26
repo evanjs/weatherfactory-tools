@@ -12,6 +12,7 @@ pub(crate) mod lessons;
 pub(crate) mod save;
 pub(crate) mod skills;
 pub(crate) mod tomes;
+mod recipe;
 
 // Define a shared trait for elements that have an ID field
 pub trait Identifiable {
