@@ -37,7 +37,7 @@ pub trait GameElementDetails {
 
 // Define a trait for collections that can find elements by ID
 pub trait FindById {
-    type Item: Identifiable;
+    type Item: Identifiable + GameElementDetails;
 
     type Collection: IntoIterator<Item = Self::Item>;
 
@@ -63,6 +63,34 @@ pub trait FindById {
             .as_ref()
             .iter()
             .find(|&element| element.id().eq_ignore_ascii_case(id))
+    }
+    
+    #[tracing::instrument(skip(self))]
+    fn label_contains_query_case_insensitive(&self, query: &str) -> Option<&Self::Item>
+    where
+        Self::Collection: AsRef<[Self::Item]>,
+        <Self as FindById>::Item: Debug,
+    {
+        debug!(
+            ?query,
+            "Searching for element with provided label (case insensitive)"
+        );
+
+        self.get_collection()
+            .as_ref()
+            .iter()
+            .find(|&element| {
+                trace!(
+                    id =? element.id(),
+                    label = element.get_label(),
+                    ?query,
+                    "Checking if label contains query (case insensitive)"
+                );
+                element
+                    .get_label()
+                    .to_ascii_lowercase()
+                    .contains(&query.to_ascii_lowercase())
+            })
     }
 
     #[tracing::instrument(skip(self))]
@@ -150,7 +178,7 @@ pub trait FindById {
 
 
 // Implement the trait for some struct
-impl<T: Identifiable> FindById for Vec<T> {
+impl<T: Identifiable + GameElementDetails> FindById for Vec<T> {
     type Item = T;
     type Collection = Vec<T>;
 

@@ -126,7 +126,7 @@ impl GameElementDetails for Element {
 
 impl AspectedItems {
     #[tracing::instrument(skip(self))]
-    pub(crate) fn get_memory_string(&self, id: &str) -> Option<String> {
+    pub(crate) fn get_memory_string_from_id(&self, id: &str) -> Option<String> {
         self.elements
             .iter()
             .find(|&f| {
@@ -140,10 +140,25 @@ impl AspectedItems {
             .map(|e| e.label.clone())
     }
 
+    #[tracing::instrument(skip(self))]
+    pub(crate) fn get_memory_string_from_query(&self, query: &str) -> Option<String> {
+        self.elements
+            .iter()
+            .find(|&f| {
+                trace!(
+                    memory_label =? &f.get_label(),
+                    ?query,
+                    "Checking if memory label contains query"
+                );
+                f.get_label().eq_ignore_ascii_case(query)
+            })
+            .map(|e| e.label.clone())
+    }
+
     pub(crate) fn get_aspects(&self, id: &str) -> Option<HashMap<String, String>> {
         self.elements
             .iter()
-            .find(|&f| f.id.as_str() == id)
+            .find(|&f| f.id().eq_ignore_ascii_case(id))
             .and_then(|element| {
                 element.aspects.as_ref().map(|aspects| {
                     aspects

@@ -379,7 +379,7 @@ where
     <W as FindById>::Collection: AsRef<[<W as FindById>::Item]>,
 {
     let results = wrapper
-        .contains_id_case_insensitive(query)
+        .label_contains_query_case_insensitive(query)
         .ok_or_else(|| anyhow::anyhow!("Failed to find item using the provided query"))
         .cloned()
         .into_iter()
@@ -556,12 +556,24 @@ where
             .iter()
             .filter(|(k, v)| k.contains("reading"))
         {
-            let memory_id = game_documents
-                .read()
-                .expect("Failed to get game documents")
-                .aspected_items
-                .get_memory_string(aspected_item_value)
-                .unwrap_or_else(|| panic!("Failed to get memory using ID: {aspected_item_key}"));
+            let memory_id = match query_type {
+                QueryType::AspectedItems => {
+                    game_documents
+                        .read()
+                        .expect("Failed to get game documents")
+                        .aspected_items
+                        .get_memory_string_from_query(aspected_item_value)
+                        .unwrap_or_else(|| panic!("Failed to get memory using ID: {aspected_item_key}"))
+                },
+                _ => {
+                    game_documents
+                        .read()
+                        .expect("Failed to get game documents")
+                        .aspected_items
+                        .get_memory_string_from_id(aspected_item_value)
+                        .unwrap_or_else(|| panic!("Failed to get memory using ID: {aspected_item_key}"))
+                }
+            };
             println!("{}", memory_id);
 
             game_documents
